@@ -35,3 +35,27 @@ export interface ITag {
   id: number
   name: string
 }
+
+export interface IVoiceActor {
+  image: string | null
+  name: string | null
+}
+
+export interface ICharacter {
+  image: string | null
+  name: string | null
+  role: string | null
+  voiceActor: IVoiceActor
+}
+
+export interface IDate {
+  month: number | null
+  year: number | null
+  day: number | null
+  string: string | null
+}
+
+export interface IAirDate {
+  start: IDate
+  end: IDate
+}
