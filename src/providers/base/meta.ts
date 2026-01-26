@@ -1,8 +1,8 @@
-import type { ProviderInfo } from "../../types/provider";
+import type { ProviderInfo } from '../../types/provider'
 
 export abstract class MetaBase {
-  abstract name: string;
-  abstract url: string;
+  abstract name: string
+  abstract url: string
 
-  abstract getInfo(): ProviderInfo;
+  abstract getInfo(): ProviderInfo
 }
