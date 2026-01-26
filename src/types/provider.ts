@@ -3,6 +3,7 @@ import type {
   ICharacter,
   IFormat,
   IGenre,
+  ISeason,
   IStatus,
   IStudio,
   ITag,
