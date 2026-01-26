@@ -247,7 +247,7 @@ class Anidb extends MetaBase {
         description,
         number: episode.number,
         rating,
-        title: [
+        titles: [
           {
             title: episode.title,
             languageCode: 'english',
