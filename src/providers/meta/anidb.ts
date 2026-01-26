@@ -142,7 +142,12 @@ class Anidb extends MetaBase {
       genres: genres,
       rating: Number($('div.info tr.rating td.value a span.value').text() ?? 0),
       coverImage: $('div.info div.image div.container img').attr('src') ?? null,
-
+      status:
+        new Date($('div.info tr.year td.value span').last()?.text().trim()) >
+        new Date()
+          ? 'airing'
+          : 'finished',
+      totalEpisodes: Number($('div.info tr.type td.value span').html()),
       airDate: {
         start: {
           month: null,
