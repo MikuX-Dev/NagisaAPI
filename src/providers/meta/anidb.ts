@@ -148,6 +148,7 @@ class Anidb extends MetaBase {
           ? 'airing'
           : 'finished',
       totalEpisodes: Number($('div.info tr.type td.value span').html()),
+      characters,
       airDate: {
         start: {
           month: null,
