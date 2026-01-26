@@ -81,3 +81,9 @@ export interface IAirDate {
   start: IDate
   end: IDate
 }
+
+export type IArtwork = {
+  type: 'banner' | 'poster' | 'clear_logo' | 'top_banner' | 'icon' | 'clear_art'
+  image: string
+  providerId: string
+}

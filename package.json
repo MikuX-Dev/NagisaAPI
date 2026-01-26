@@ -17,6 +17,7 @@
     "@elysiajs/cors": "^1.4.1",
     "bullmq": "^5.67.1",
     "cheerio": "^1.2.0",
+    "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.1",
     "elysia": "^1.4.22",
     "ioredis": "^5.9.2",
