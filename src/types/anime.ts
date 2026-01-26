@@ -1,0 +1,32 @@
+/**
+ * @name IStatus
+ * @description It is used for status of the provdiers. Consistent. All the provider's status will be mapped to this.
+ */
+export type IStatus =
+  | "airing"
+  | "finished"
+  | "cancelled"
+  | "hiatus"
+  | "upcoming"
+
+export type StatusLabel = "Currently Airing" | "Finished" | "Cancelled" | "Hiatus" | "Coming Soon";
+
+export interface ITitle {
+  languageCode: string 
+  title: string 
+}
+
+export interface IStudio {
+  id: number
+  name: string
+}
+
+export interface IGenre {
+  id: number
+  name: string
+}
+
+export interface ITag {
+  id: number
+  name: string
+}
