@@ -1,4 +1,13 @@
 import ky, { type KyInstance } from 'ky'
+
+import { mapAniListFormatToIFormat } from '../../helper/map-format'
+import { mapAnilistStatus } from '../../helper/map-status'
+import type {
+  ICharacter,
+  ISeason,
+  IVoiceActor,
+  RelationType,
+} from '../../types/anime'
 import type {
   AnilistMediaFormat,
   AnilistMediaStatus,
@@ -6,15 +15,8 @@ import type {
   IRelation,
   ProviderInfo,
 } from '../../types/provider'
+
 import { MetaBase } from '../base/meta'
-import type {
-  ICharacter,
-  ISeason,
-  IVoiceActor,
-  RelationType,
-} from '../../types/anime'
-import { mapAniListFormatToIFormat } from '../../helper/map-format'
-import { mapAnilistStatus } from '../../helper/map-status'
 
 class Anilist extends MetaBase {
   override name: string = 'anilist'
@@ -334,4 +336,3 @@ export interface NextAiringEpisode {
 }
 
 export default Anilist
-
