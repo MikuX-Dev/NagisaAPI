@@ -1,7 +1,9 @@
 import type { IStatus, StatusLabel } from '../types/anime'
 import type { AnilistMediaStatus } from '../types/provider'
 
-export const mapAnilistStatus = (status: AnilistMediaStatus): IStatus => {
+export const mapAnilistStatus = (
+  status: AnilistMediaStatus | null,
+): IStatus | null => {
   switch (status) {
     case 'RELEASING':
       return 'airing'
@@ -15,7 +17,7 @@ export const mapAnilistStatus = (status: AnilistMediaStatus): IStatus => {
       return 'hiatus'
 
     default:
-      throw new Error('Unknown status type.')
+      return null
   }
 }
 
