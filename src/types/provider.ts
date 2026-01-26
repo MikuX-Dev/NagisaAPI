@@ -1,12 +1,12 @@
 import type {
-  ITitle,
+  IAirDate,
+  ICharacter,
+  IGenre,
   IStatus,
   IStudio,
-  IGenre,
   ITag,
-  ICharacter,
-  IAirDate,
-} from './anime'
+  ITitle,
+} from './anime';
 
 /**
  * @name ProviderInfo
@@ -18,6 +18,7 @@ export interface ProviderInfo {
   coverImage?: string | null
   bannerImage?: string | null
   logoImage?: string | null
+  color?: string | null
   description?: string | null
   airDate?: IAirDate | null
   status?: IStatus | null
