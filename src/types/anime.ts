@@ -16,6 +16,28 @@ export type StatusLabel =
   | 'Hiatus'
   | 'Coming Soon'
 
+export type RelationType =
+  | 'PREQUEL'
+  | 'SEQUEL'
+  | 'ALTERNATIVE'
+  | 'SIDE_STORY'
+  | 'PARENT'
+  | 'SPIN_OFF'
+  | 'OTHER'
+
+export type IFormat =
+  | 'tv show' // combines tv and tv short
+  | 'movie'
+  | 'special'
+  | 'ova'
+  | 'ona'
+  | 'music'
+  | 'manga'
+  | 'novel'
+  | 'one shot'
+
+export type ISeason = 'summer' | 'winter' | 'spring' | 'fall'
+
 export interface ITitle {
   languageCode: string
   title: string

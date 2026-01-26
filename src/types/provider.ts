@@ -1,20 +1,23 @@
 import type {
   IAirDate,
   ICharacter,
+  IFormat,
   IGenre,
   IStatus,
   IStudio,
   ITag,
   ITitle,
-} from './anime';
+  RelationType,
+} from './anime'
 
 /**
  * @name ProviderInfo
  * @description It is used for information of the provdiers. Consistent. All the provider's informations will be mapped to this.
  */
 export interface ProviderInfo {
+  id?: string
   titles: ITitle[]
-  synonyms: string[]
+  synonyms?: string[]
   coverImage?: string | null
   bannerImage?: string | null
   logoImage?: string | null
@@ -22,6 +25,10 @@ export interface ProviderInfo {
   description?: string | null
   airDate?: IAirDate | null
   status?: IStatus | null
+  format?: IFormat | null
+  season?: ISeason | null
+  relations?: IRelation[] | null
+  countryOfOrigin?: string | null
   totalEpisodes?: number | null
   subCount?: number | null
   dubCount?: number | null
@@ -37,7 +44,7 @@ export interface ProviderInfo {
 
 export interface ProviderEpisode {
   id?: string | null
-  title?: ITitle[] | null
+  titles?: ITitle[] | null
   thumbnailImage?: string | null
   preview?: string | null
   description?: string | null
@@ -58,6 +65,26 @@ export type AnilistMediaStatus =
   | 'NOT_YET_RELEASED'
   | 'HIATUS'
   | 'CANCELLED'
+
+export type AnilistMediaFormat =
+  | 'TV'
+  | 'TV_SHORT'
+  | 'MOVIE'
+  | 'SPECIAL'
+  | 'OVA'
+  | 'ONA'
+  | 'MUSIC'
+  | 'MANGA'
+  | 'NOVEL'
+  | 'ONE_SHOT'
+
+export interface IRelation {
+  relationType: RelationType | null
+  id: number
+  titles: ITitle[]
+  format: AnilistMediaFormat | null
+  type: string | null
+}
 
 export type FribbAnime = {
   type?: 'TV' | 'ONA' | 'MOVIE' | 'OVA' | 'SPECIAL'
