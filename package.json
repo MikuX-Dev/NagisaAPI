@@ -8,6 +8,7 @@
     "@types/lodash": "^4.17.23"
   },
   "scripts": {
+    "start": "bun run src/index.ts",
     "format": "bunx biome format --write"
   },
   "peerDependencies": {
