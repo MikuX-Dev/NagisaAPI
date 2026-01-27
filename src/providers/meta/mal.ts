@@ -1,6 +1,6 @@
 import { load } from 'cheerio'
-import ky, { type KyInstance } from 'ky'
 import { formatDistance } from 'date-fns'
+import ky, { type KyInstance } from 'ky'
 
 import type {
   ICharacter,
@@ -15,8 +15,8 @@ import type {
   AnilistMediaFormat,
   FribbAnime,
   IRelation,
-  ProviderInfo,
   ProviderEpisode,
+  ProviderInfo,
 } from '../../types/provider'
 
 import { MetaBase } from '../base/meta'
