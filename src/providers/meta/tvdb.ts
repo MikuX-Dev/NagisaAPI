@@ -1,7 +1,8 @@
 import ky, { type KyInstance } from 'ky'
-import { MetaBase } from '../base/meta'
-import type { FribbAnime, ProviderInfo } from '../../types/provider'
 import type { IArtwork as ProviderIArtwork } from '../../types/anime'
+import type { FribbAnime, ProviderInfo } from '../../types/provider'
+
+import { MetaBase } from '../base/meta'
 
 class TheTVDB extends MetaBase {
   override name: string = 'thetvdb'
