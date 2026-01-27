@@ -1,0 +1,50 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Build']
+    branches: [main]
+    types: [completed]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+          if_key_exists: replace
+
+      - name: Add known hosts
+        run: |
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy with SSH
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_ACTOR="${{ github.actor }}"
+
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << ENDSSH
+            cd /deployer/NagisaAPI || exit 1
+
+            # Configure Git to use token-based authentication temporarily
+            git config --local credential.helper store
+            echo "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com" > ~/.git-credentials
+
+            # Pull latest changes
+            git pull origin main
+
+            # Clean up credentials
+            rm ~/.git-credentials
+            git config --local --unset credential.helper
+
+            echo "${GITHUB_TOKEN}" | docker login ghcr.io -u ${GITHUB_ACTOR} --password-stdin
+            docker pull ghcr.io/${REPO_LOWER}:latest
+            docker compose up -d
+          ENDSSH

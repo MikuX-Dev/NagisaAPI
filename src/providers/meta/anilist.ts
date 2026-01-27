@@ -43,6 +43,16 @@ class Anilist extends MetaBase {
       .json<{ data: AnimeInfoResponse }>()
 
     const media = res.data.Media
+    let currentEpisode = 0
+    if (media?.nextAiringEpisode) {
+      currentEpisode = media.nextAiringEpisode.episode - 1
+    } else if (
+      media?.episodes &&
+      (media.status === 'FINISHED' || media.status === 'CANCELLED')
+    ) {
+      currentEpisode = media.episodes
+    }
+
     const characters: ICharacter[] =
       media?.characters?.edges?.map(
         (char) =>
@@ -136,6 +146,7 @@ class Anilist extends MetaBase {
         id: tag.id,
         name: tag.name,
       })),
+      currentEpisode,
 
       createdAt: Date.now(),
       updatedAt: Date.now(),

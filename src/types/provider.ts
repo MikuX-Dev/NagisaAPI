@@ -1,5 +1,6 @@
 import type {
   IAirDate,
+  IArtwork,
   ICharacter,
   IFormat,
   IGenre,
@@ -29,6 +30,7 @@ export interface ProviderInfo {
   format?: IFormat | null
   season?: ISeason | null
   relations?: IRelation[] | null
+  currentEpisode?: number | null
   countryOfOrigin?: string | null
   totalEpisodes?: number | null
   subCount?: number | null
@@ -36,6 +38,7 @@ export interface ProviderInfo {
   rating?: number | null
   ageRating?: string | null
   characters?: ICharacter[]
+  artwork?: IArtwork[]
   studio?: IStudio[]
   genres?: IGenre[]
   tags?: ITag[]

@@ -1,15 +1,27 @@
-import Simkl from "./providers/meta/simkl";
-import type { FribbAnime } from "./types/provider";
+import cors from '@elysiajs/cors'
+import chalk from 'chalk'
+import Elysia from 'elysia'
 
-console.log('Hello via Bun!')
+const pastelPink = chalk.hex('#ffb7c5')
+const pastelBlue = chalk.hex('#b5e8ff')
+const pastelPurple = chalk.hex('#d7b5ff')
+const pastelGray = chalk.hex('#e0e0e0')
 
-const simkl = new Simkl();
+const PORT = 3000
+const HOST = 'localhost'
 
-const anime: FribbAnime = {
-  simkl_id: 1211265,
-};
+new Elysia()
+  .use(cors())
+  .get('/', () => ({
+    message: 'Elo! Fuck uu<3 uwu',
+  }))
+  .listen(PORT)
 
-(async () => {
-  const res = await simkl.getEpisodes(anime);
-  console.log(res);
-})();
+console.log(
+  pastelGray('─'.repeat(40)) + '\n' +
+  pastelPink('♡ Server started successfully~ ♡\n') +
+  pastelBlue(`→ Host : ${HOST}\n`) +
+  pastelPurple(`→ Name  : Nagisa API\n`) +
+  pastelBlue(`→ Full : http://${HOST}:${PORT}/\n`) +
+  pastelGray('─'.repeat(40))
+)
