@@ -28,6 +28,9 @@ services:
 
   api:
     image: ghcr.io/1anime/nagisaapi:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       redis:
