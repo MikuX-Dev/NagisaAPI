@@ -2,6 +2,8 @@ import cors from '@elysiajs/cors'
 import chalk from 'chalk'
 import Elysia from 'elysia'
 
+import { redis } from './database/cache'
+
 const pastelPink = chalk.hex('#ffb7c5')
 const pastelBlue = chalk.hex('#b5e8ff')
 const pastelPurple = chalk.hex('#d7b5ff')
@@ -15,13 +17,29 @@ new Elysia()
   .get('/', () => ({
     message: 'Elo! Fuck uu<3 uwu',
   }))
+  .get('/redis', async () => {
+    try {
+      const p = await redis.ping()
+
+      if (p === 'PONG')
+        return {
+          message: 'Redis is working successfully! (*^_^*)',
+        }
+      else {
+        return { message: 'Redis is fucked up. (；′⌒`)' }
+      }
+    } catch {
+      return { message: 'Redis is fucked up. (；′⌒`)' }
+    }
+  })
   .listen(PORT)
 
 console.log(
-  pastelGray('─'.repeat(40)) + '\n' +
-  pastelPink('♡ Server started successfully~ ♡\n') +
-  pastelBlue(`→ Host : ${HOST}\n`) +
-  pastelPurple(`→ Name  : Nagisa API\n`) +
-  pastelBlue(`→ Full : http://${HOST}:${PORT}/\n`) +
-  pastelGray('─'.repeat(40))
+  pastelGray('─'.repeat(40)) +
+    '\n' +
+    pastelPink('♡ Server started successfully~ ♡\n') +
+    pastelBlue(`→ Host : ${HOST}\n`) +
+    pastelPurple(`→ Name  : Nagisa API\n`) +
+    pastelBlue(`→ Full : http://${HOST}:${PORT}/\n`) +
+    pastelGray('─'.repeat(40)),
 )
