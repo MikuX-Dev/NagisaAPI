@@ -1,3 +1,5 @@
+import type { IRelation } from './provider'
+
 /**
  * @name IStatus
  * @description It is used for status of the provdiers. Consistent. All the provider's status will be mapped to this.
@@ -86,4 +88,53 @@ export type IArtwork = {
   type: 'banner' | 'poster' | 'clear_logo' | 'top_banner' | 'icon' | 'clear_art'
   image: string
   providerId: string
+}
+
+export interface Info {
+  id: string
+  slug: string
+  titles: ITitle[]
+  synonyms: string[]
+  coverImage: string | null
+  bannerImage: string | null
+  logoImage: string | null
+  color: string | null
+  description: string | null
+  airDate: IAirDate | null
+  status: IStatus | null
+  format: IFormat | null
+  season: ISeason | null
+  relations: IRelation[] | null
+  currentEpisode: number | null
+  countryOfOrigin: string | null
+  totalEpisodes: number | null
+  subCount: number | null
+  dubCount: number | null
+  rating: number | null
+  ageRating: string | null
+  characters: ICharacter[]
+  artwork: IArtwork[]
+  studio: IStudio[]
+  genres: IGenre[]
+  tags: ITag[]
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ProviderEpisode {
+  id: string | null
+  titles: ITitle[] | null
+  thumbnailImage: string | null
+  preview: string | null
+  description: string | null
+  number: number
+  rating: number | null
+  filler: boolean
+  recap: boolean
+  runtime: number | null
+  ago: string | null
+  providers: { providerType: 'sub' | 'dub' | 'h-sub'; providerName: string }[]
+
+  createdAt: number
+  updatedAt: number
 }

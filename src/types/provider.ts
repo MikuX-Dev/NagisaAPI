@@ -63,6 +63,31 @@ export interface ProviderEpisode {
   updatedAt: number
 }
 
+export interface CrysolineEpisode {
+  id?: string | null
+  title?: string | null
+  thumbnailImage?: string | null
+  preview?: string | null
+  description?: string | null
+  filler?: boolean
+  rating?: number | null
+  recap?: boolean
+  runtime?: number | null
+  number?: number
+}
+
+export type CrysolineProviderEpisode = Omit<
+  CrysolineEpisode,
+  'subCount' | 'dubCount'
+> & { hasDub?: boolean }
+
+export interface ProviderSearch {
+  id: string | number
+  title: string
+  year?: number
+  totalEpisodes?: number
+}
+
 export type AnilistMediaStatus =
   | 'FINISHED'
   | 'RELEASING'
