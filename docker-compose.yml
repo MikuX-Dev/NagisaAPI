@@ -40,7 +40,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nagisaapi
     ports:
-      - '9020:3000'
+      - '9006:3000'
 
 volumes:
   redisdata:
