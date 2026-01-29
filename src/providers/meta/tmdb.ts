@@ -488,6 +488,8 @@ class TheMovieDB extends MetaBase {
         width: 400,
       })?.file_path
 
+      const artwork = await this.getArtwork(anime)
+
       const logoImage = `https://image.tmdb.org/t/p/original/${logoImagePath}`
 
       return {
@@ -500,6 +502,7 @@ class TheMovieDB extends MetaBase {
             title: basicData.original_name ?? '',
           },
         ],
+        artwork,
 
         createdAt: Date.now(),
         updatedAt: Date.now(),
