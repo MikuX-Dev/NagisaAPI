@@ -39,6 +39,7 @@ import { getDominantColor } from '../helper/get-color'
 import { FindBestMatchByTitles } from './helpers/find-best-match'
 import { cleanTitle } from './helpers/sanitize-title'
 import Miyako from '../providers/anime/miyako-anizone'
+import Toki from '../providers/anime/toki-zencloud'
 
 export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const providers = {
@@ -303,6 +304,10 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
       name: 'miyako',
       instance: new Miyako(),
     },
+    {
+      name: 'toki',
+      instance: new Toki(),
+    },
   ]
 
   const anilist = new Anilist()
@@ -325,34 +330,47 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   > = new Map()
 
   for (const provider of streamingProviders) {
-    const searchResults = await provider.instance.search(
-      cleanTitle(
-        titleToMap.english ??
-          titleToMap.romaji ??
-          titleToMap.native ??
-          anime.mal_id?.toString() ??
-          '',
-      ),
-    )
+    if (provider.name === 'toki') {
+      const episodes = await provider.instance.getEpisodes(
+        anilistInfo?.id ?? '',
+      )
 
-    if (searchResults && searchResults.length > 0) {
-      const bestMatches = FindBestMatchByTitles(titleToMap, searchResults)
+      if (episodes) {
+        streamingData.set(provider.name, {
+          episodes,
+          providerTypes: provider.instance.providerType,
+        })
+      }
+    } else {
+      const searchResults = await provider.instance.search(
+        cleanTitle(
+          titleToMap.english ??
+            titleToMap.romaji ??
+            titleToMap.native ??
+            anime.mal_id?.toString() ??
+            '',
+        ),
+      )
 
-      if (
-        bestMatches.mostCommonMatchIndex === 0 ||
-        bestMatches.mostCommonMatchIndex
-      ) {
-        const bestMatch = searchResults[bestMatches.mostCommonMatchIndex]
-        if (bestMatch) {
-          const episodes = await provider.instance.getEpisodes(
-            bestMatch.id.toString(),
-          )
+      if (searchResults && searchResults.length > 0) {
+        const bestMatches = FindBestMatchByTitles(titleToMap, searchResults)
 
-          if (episodes) {
-            streamingData.set(provider.name, {
-              episodes,
-              providerTypes: provider.instance.providerType,
-            })
+        if (
+          bestMatches.mostCommonMatchIndex === 0 ||
+          bestMatches.mostCommonMatchIndex
+        ) {
+          const bestMatch = searchResults[bestMatches.mostCommonMatchIndex]
+          if (bestMatch) {
+            const episodes = await provider.instance.getEpisodes(
+              bestMatch.id.toString(),
+            )
+
+            if (episodes) {
+              streamingData.set(provider.name, {
+                episodes,
+                providerTypes: provider.instance.providerType,
+              })
+            }
           }
         }
       }
@@ -495,29 +513,29 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   return Array.from(episodeMap.values()).sort((a, b) => a.number - b.number)
 }
 
-await Bun.write(
-  'episodes.json',
-  JSON.stringify(
-    await getEpisodes({
-      type: 'TV',
-      anidb_id: 16188,
-      anilist_id: 132052,
-      animecountdown_id: 1604475,
-      'anime-planet_id': 'a-couple-of-cuckoos',
-      anisearch_id: 16163,
-      imdb_id: 'tt14400866',
-      kitsu_id: 44310,
-      livechart_id: 10346,
-      mal_id: 48675,
-      simkl_id: 1604475,
-      themoviedb_id: 122587,
-      tvdb_id: 400585,
-      season: {
-        tvdb: 1,
-        tmdb: 1,
-      },
-    }),
-    null,
-    2,
-  ),
-)
+// await Bun.write(
+//   'episodes.json',
+//   JSON.stringify(
+//     await getEpisodes({
+//       type: 'TV',
+//       anidb_id: 16188,
+//       anilist_id: 132052,
+//       animecountdown_id: 1604475,
+//       'anime-planet_id': 'a-couple-of-cuckoos',
+//       anisearch_id: 16163,
+//       imdb_id: 'tt14400866',
+//       kitsu_id: 44310,
+//       livechart_id: 10346,
+//       mal_id: 48675,
+//       simkl_id: 1604475,
+//       themoviedb_id: 122587,
+//       tvdb_id: 400585,
+//       season: {
+//         tvdb: 1,
+//         tmdb: 1,
+//       },
+//     }),
+//     null,
+//     2,
+//   ),
+// )
