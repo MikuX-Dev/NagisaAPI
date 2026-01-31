@@ -70,7 +70,7 @@ export const info = pgTable(
         | 'PARENT'
         | 'SPIN_OFF'
         | 'OTHER'
-        | "ADAPTATION"
+        | 'ADAPTATION'
         | null
       id: number
       titles: Array<{ languageCode: string; title: string | null }>

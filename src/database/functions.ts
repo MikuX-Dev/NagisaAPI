@@ -493,7 +493,7 @@ await Bun.write(
   'db-info.json',
   JSON.stringify(
     await getInfo('x5kc4dvc09qxsetw'),
-    (_k, v) => typeof v === 'bigint' ? v.toString() : v,
+    (_k, v) => (typeof v === 'bigint' ? v.toString() : v),
     2,
   ),
 )

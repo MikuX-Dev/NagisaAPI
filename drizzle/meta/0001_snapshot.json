@@ -136,12 +136,8 @@
           "name": "episode_info_id_info_id_fk",
           "tableFrom": "episode",
           "tableTo": "info",
-          "columnsFrom": [
-            "info_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["info_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -149,10 +145,7 @@
       "compositePrimaryKeys": {
         "episode_id_info_id_pk": {
           "name": "episode_id_info_id_pk",
-          "columns": [
-            "id",
-            "info_id"
-          ]
+          "columns": ["id", "info_id"]
         }
       },
       "uniqueConstraints": {},
@@ -200,9 +193,7 @@
         "genre_name_unique": {
           "name": "genre_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -469,12 +460,8 @@
           "name": "info_to_genre_info_id_info_id_fk",
           "tableFrom": "info_to_genre",
           "tableTo": "info",
-          "columnsFrom": [
-            "info_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["info_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -482,12 +469,8 @@
           "name": "info_to_genre_genre_id_genre_id_fk",
           "tableFrom": "info_to_genre",
           "tableTo": "genre",
-          "columnsFrom": [
-            "genre_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["genre_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -495,10 +478,7 @@
       "compositePrimaryKeys": {
         "info_to_genre_info_id_genre_id_pk": {
           "name": "info_to_genre_info_id_genre_id_pk",
-          "columns": [
-            "info_id",
-            "genre_id"
-          ]
+          "columns": ["info_id", "genre_id"]
         }
       },
       "uniqueConstraints": {},

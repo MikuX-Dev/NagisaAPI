@@ -81,15 +81,15 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
   }
 
   const titleToMap = {
-    english: data.anilist?.titles.find(
-      (title) => title.languageCode === 'english',
-    )?.title ?? '',
-    romaji: data.anilist?.titles.find(
-      (title) => title.languageCode === 'romaji',
-    )?.title ?? '',
-    native: data.anilist?.titles.find(
-      (title) => title.languageCode === 'japanese',
-    )?.title ?? '',
+    english:
+      data.anilist?.titles.find((title) => title.languageCode === 'english')
+        ?.title ?? '',
+    romaji:
+      data.anilist?.titles.find((title) => title.languageCode === 'romaji')
+        ?.title ?? '',
+    native:
+      data.anilist?.titles.find((title) => title.languageCode === 'japanese')
+        ?.title ?? '',
   }
 
   let bestNagisaMatch: ProviderSearch | undefined
@@ -166,7 +166,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const getCharacters = (): ICharacter[] => {
     return (
       data.anilist?.characters ||
-            data.mal?.characters ||
+      data.mal?.characters ||
       data.kitsu?.characters ||
       []
     )
@@ -273,7 +273,9 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     totalEpisodes: getTotalEpisodes(),
     countryOfOrigin: data.anilist?.countryOfOrigin ?? null,
     rating:
-      Math.round(data.anilist?.rating ?? data.mal?.rating ?? data.tmdb?.rating ?? 0) ?? null,
+      Math.round(
+        data.anilist?.rating ?? data.mal?.rating ?? data.tmdb?.rating ?? 0,
+      ) ?? null,
     ageRating: data.anilist?.ageRating ?? data.mal?.ageRating ?? null,
 
     subCount,
@@ -342,11 +344,14 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   const anilistInfo = await anilist.getInfo(anime)
 
   const titleToMap = {
-    english: anilistInfo?.titles.find((t) => t.languageCode === 'english')
-      ?.title ?? '',
-    romaji: anilistInfo?.titles.find((t) => t.languageCode === 'romaji')?.title ?? '',
-    native: anilistInfo?.titles.find((t) => t.languageCode === 'japanese')
-      ?.title ?? '',
+    english:
+      anilistInfo?.titles.find((t) => t.languageCode === 'english')?.title ??
+      '',
+    romaji:
+      anilistInfo?.titles.find((t) => t.languageCode === 'romaji')?.title ?? '',
+    native:
+      anilistInfo?.titles.find((t) => t.languageCode === 'japanese')?.title ??
+      '',
   }
 
   const streamingData: Map<

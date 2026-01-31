@@ -100,7 +100,7 @@ class Anilist extends MetaBase {
             ],
             type: rel.node.type,
             relationType: rel.relationType,
-            format: rel.node.format
+            format: rel.node.format,
           }) as IRelation,
       ) ?? []
 
