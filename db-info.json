@@ -1,52 +1,114 @@
 {
-  "id": "a1f2ohbm0fn85l_c",
+  "id": "x5kc4dvc09qxsetw",
   "slug": "a-couple-of-cuckoos",
   "titles": [
     {
-      "languageCode": "english",
-      "title": "A Couple of Cuckoos"
+      "title": "A Couple of Cuckoos",
+      "languageCode": "english"
     },
     {
-      "languageCode": "japanese",
-      "title": "カッコウの許嫁"
+      "title": "カッコウの許嫁",
+      "languageCode": "japanese"
     },
     {
-      "languageCode": "romaji",
-      "title": "Kakkou no Iinazuke"
+      "title": "Kakkou no Iinazuke",
+      "languageCode": "romaji"
     }
   ],
   "synonyms": [
     "Cuckoo's Fiancee"
   ],
-  "description": "16-year-old super-studier Umino Nagi, second-year student at the Meguro River Academy high school, was switched at birth. On his way to a dinner to meet his birth parents, he accidentally meets the brash, outspoken, Amano Erika, who is determined to make Nagi her fake boyfriend as she never wants to actually marry. But once Nagi makes it to dinner, he finds his parents have decided to resolve the hospital switch by conveniently having him marry the daughter his birth parents raised...who turns out to be none other than Erika herself! Less",
   "coverImage": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx132052-3gDTi19HyW6E.png",
   "bannerImage": "https://artworks.thetvdb.com/banners/v4/series/400585/backgrounds/6295cef26fd7f.jpg",
   "logoImage": "https://image.tmdb.org/t/p/original//2FU5h2LiGt7nSh3ql7xj0LVev4U.png",
   "color": "#f0625e",
+  "description": "16-year-old super-studier Umino Nagi, second-year student at the Meguro River Academy high school, was switched at birth. On his way to a dinner to meet his birth parents, he accidentally meets the brash, outspoken, Amano Erika, who is determined to make Nagi her fake boyfriend as she never wants to actually marry. But once Nagi makes it to dinner, he finds his parents have decided to resolve the hospital switch by conveniently having him marry the daughter his birth parents raised...who turns out to be none other than Erika herself! Less",
+  "airDate": {
+    "end": {
+      "day": 2,
+      "year": 2022,
+      "month": 10,
+      "string": "2022-10-01T18:00:00.000Z"
+    },
+    "start": {
+      "day": 24,
+      "year": 2022,
+      "month": 4,
+      "string": "2022-04-23T18:00:00.000Z"
+    }
+  },
   "status": "finished",
   "format": "tv show",
   "season": "spring",
-  "airDate": {
-    "start": {
-      "month": 4,
-      "day": 24,
-      "year": 2022,
-      "string": "2022-04-23T18:00:00.000Z"
+  "relations": [
+    {
+      "id": 114383,
+      "type": "MANGA",
+      "format": "MANGA",
+      "titles": [
+        {
+          "title": "A Couple of Cuckoos",
+          "languageCode": "english"
+        },
+        {
+          "title": "カッコウの許嫁",
+          "languageCode": "japanese"
+        },
+        {
+          "title": "Kakkou no Iinazuke",
+          "languageCode": "romaji"
+        }
+      ],
+      "relationType": "ADAPTATION"
     },
-    "end": {
-      "month": 10,
-      "day": 2,
-      "year": 2022,
-      "string": "2022-10-01T18:00:00.000Z"
+    {
+      "id": 148295,
+      "type": "ANIME",
+      "format": "ONA",
+      "titles": [
+        {
+          "title": null,
+          "languageCode": "english"
+        },
+        {
+          "title": "カッコウのいいかげん！",
+          "languageCode": "japanese"
+        },
+        {
+          "title": "Kakkou no Iikagen!",
+          "languageCode": "romaji"
+        }
+      ],
+      "relationType": "SIDE_STORY"
+    },
+    {
+      "id": 179828,
+      "type": "ANIME",
+      "format": "TV",
+      "titles": [
+        {
+          "title": "A Couple of Cuckoos Season 2",
+          "languageCode": "english"
+        },
+        {
+          "title": "カッコウの許嫁 Season2",
+          "languageCode": "japanese"
+        },
+        {
+          "title": "Kakkou no Iinazuke Season 2",
+          "languageCode": "romaji"
+        }
+      ],
+      "relationType": "SEQUEL"
     }
-  },
+  ],
   "currentEpisode": 24,
-  "totalEpisodes": 24,
   "countryOfOrigin": "JP",
-  "rating": 7,
-  "ageRating": "PG-13 - Teens 13 or older",
+  "totalEpisodes": 24,
   "subCount": 24,
   "dubCount": 24,
+  "rating": 7,
+  "ageRating": "PG-13 - Teens 13 or older",
   "characters": [
     {
       "name": "Hiro Segawa",
@@ -272,68 +334,6 @@
         "name": "Yuujirou Kakuda",
         "image": "https://s4.anilist.co/file/anilistcdn/staff/large/n198659-t9Vgew1LIu55.png"
       }
-    }
-  ],
-  "relations": [
-    {
-      "id": 114383,
-      "titles": [
-        {
-          "languageCode": "english",
-          "title": "A Couple of Cuckoos"
-        },
-        {
-          "languageCode": "japanese",
-          "title": "カッコウの許嫁"
-        },
-        {
-          "languageCode": "romaji",
-          "title": "Kakkou no Iinazuke"
-        }
-      ],
-      "type": "MANGA",
-      "relationType": "ADAPTATION",
-      "format": "MANGA"
-    },
-    {
-      "id": 148295,
-      "titles": [
-        {
-          "languageCode": "english",
-          "title": null
-        },
-        {
-          "languageCode": "japanese",
-          "title": "カッコウのいいかげん！"
-        },
-        {
-          "languageCode": "romaji",
-          "title": "Kakkou no Iikagen!"
-        }
-      ],
-      "type": "ANIME",
-      "relationType": "SIDE_STORY",
-      "format": "ONA"
-    },
-    {
-      "id": 179828,
-      "titles": [
-        {
-          "languageCode": "english",
-          "title": "A Couple of Cuckoos Season 2"
-        },
-        {
-          "languageCode": "japanese",
-          "title": "カッコウの許嫁 Season2"
-        },
-        {
-          "languageCode": "romaji",
-          "title": "Kakkou no Iinazuke Season 2"
-        }
-      ],
-      "type": "ANIME",
-      "relationType": "SEQUEL",
-      "format": "TV"
     }
   ],
   "artwork": [
@@ -854,36 +854,10 @@
       "name": "Crunchyroll"
     }
   ],
-  "genres": [
-    {
-      "id": 15,
-      "name": "Comedy"
-    },
-    {
-      "id": 28,
-      "name": "Romance"
-    },
-    {
-      "id": 0,
-      "name": "Harem"
-    },
-    {
-      "id": 0,
-      "name": "Shounen"
-    },
-    {
-      "id": 17,
-      "name": "Animation"
-    },
-    {
-      "id": 27,
-      "name": "Anime"
-    }
-  ],
   "tags": [
     {
-      "name": "love triangle",
-      "id": 128
+      "id": 128,
+      "name": "love triangle"
     },
     {
       "id": 0,
@@ -898,8 +872,8 @@
       "name": "Heterosexual"
     },
     {
-      "name": "school",
-      "id": 10873
+      "id": 10873,
+      "name": "school"
     },
     {
       "id": 23,
@@ -1066,20 +1040,20 @@
       "name": "parenting"
     },
     {
-      "name": "based on comic",
-      "id": 9717
+      "id": 9717,
+      "name": "based on comic"
     },
     {
-      "name": "romcom",
-      "id": 9799
+      "id": 9799,
+      "name": "romcom"
     },
     {
-      "name": "slice of life",
-      "id": 9914
+      "id": 9914,
+      "name": "slice of life"
     },
     {
-      "name": "anime",
-      "id": 210024
+      "id": 210024,
+      "name": "anime"
     },
     {
       "id": 1,
@@ -1098,6 +1072,32 @@
       "name": "High School"
     }
   ],
-  "createdAt": 1769876433916,
-  "updatedAt": 1769876433916
+  "createdAt": "1769877109727",
+  "updatedAt": "1769877109727",
+  "genres": [
+    {
+      "id": "_x962k",
+      "name": "Comedy"
+    },
+    {
+      "id": "qfdpy8",
+      "name": "Romance"
+    },
+    {
+      "id": "pozho4",
+      "name": "Harem"
+    },
+    {
+      "id": "yl49_o",
+      "name": "Shounen"
+    },
+    {
+      "id": "7hvkcb",
+      "name": "Animation"
+    },
+    {
+      "id": "t39oki",
+      "name": "Anime"
+    }
+  ]
 }

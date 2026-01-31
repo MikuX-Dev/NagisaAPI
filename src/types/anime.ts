@@ -26,6 +26,7 @@ export type RelationType =
   | 'PARENT'
   | 'SPIN_OFF'
   | 'OTHER'
+  | 'ADAPTATION'
 
 export type IFormat =
   | 'tv show' // combines tv and tv short
@@ -42,7 +43,7 @@ export type ISeason = 'summer' | 'winter' | 'spring' | 'fall'
 
 export interface ITitle {
   languageCode: string
-  title: string
+  title: string | null
 }
 
 export interface IStudio {

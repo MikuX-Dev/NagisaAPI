@@ -23,6 +23,8 @@ import type {
   ITag,
   ITitle,
   Episode,
+  IAirDate,
+  IDate,
 } from '../types/anime'
 
 import type {
@@ -81,13 +83,13 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const titleToMap = {
     english: data.anilist?.titles.find(
       (title) => title.languageCode === 'english',
-    )?.title,
+    )?.title ?? '',
     romaji: data.anilist?.titles.find(
       (title) => title.languageCode === 'romaji',
-    )?.title,
+    )?.title ?? '',
     native: data.anilist?.titles.find(
       (title) => title.languageCode === 'japanese',
-    )?.title,
+    )?.title ?? '',
   }
 
   let bestNagisaMatch: ProviderSearch | undefined
@@ -163,8 +165,8 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
 
   const getCharacters = (): ICharacter[] => {
     return (
-      data.mal?.characters ||
       data.anilist?.characters ||
+            data.mal?.characters ||
       data.kitsu?.characters ||
       []
     )
@@ -193,6 +195,32 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     data.anilist?.currentEpisode ??
     data.mal?.currentEpisode ??
     null
+
+  function airDateToISOString(date: IDate | null) {
+    if (!date) return null
+    if (!date.year) return null
+
+    const month = (date.month ?? 1) - 1
+    const day = date.day ?? 1
+
+    const jsDate = new Date(date.year, month, day)
+    return jsDate.toISOString()
+  }
+
+  const airDate: IAirDate = {
+    start: {
+      month: data.anilist?.airDate?.start.month ?? null,
+      day: data.anilist?.airDate?.start.day ?? null,
+      year: data.anilist?.airDate?.start.year ?? null,
+      string: airDateToISOString(data.anilist?.airDate?.start ?? null),
+    },
+    end: {
+      month: data.anilist?.airDate?.end.month ?? null,
+      day: data.anilist?.airDate?.end.day ?? null,
+      year: data.anilist?.airDate?.end.year ?? null,
+      string: airDateToISOString(data.anilist?.airDate?.end ?? null),
+    },
+  }
 
   const info: Info = {
     id: nanoid().toString(),
@@ -238,14 +266,14 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     season: (data.anilist?.season ??
       data.mal?.season ??
       null) as ISeason | null,
-    airDate: data.anilist?.airDate ?? data.mal?.airDate ?? null,
+    airDate: airDate ?? null,
 
     // Stats
     currentEpisode: getCurrentEpisode(),
     totalEpisodes: getTotalEpisodes(),
     countryOfOrigin: data.anilist?.countryOfOrigin ?? null,
     rating:
-      data.anilist?.rating ?? data.mal?.rating ?? data.tmdb?.rating ?? null,
+      Math.round(data.anilist?.rating ?? data.mal?.rating ?? data.tmdb?.rating ?? 0) ?? null,
     ageRating: data.anilist?.ageRating ?? data.mal?.ageRating ?? null,
 
     subCount,
@@ -315,10 +343,10 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
 
   const titleToMap = {
     english: anilistInfo?.titles.find((t) => t.languageCode === 'english')
-      ?.title,
-    romaji: anilistInfo?.titles.find((t) => t.languageCode === 'romaji')?.title,
+      ?.title ?? '',
+    romaji: anilistInfo?.titles.find((t) => t.languageCode === 'romaji')?.title ?? '',
     native: anilistInfo?.titles.find((t) => t.languageCode === 'japanese')
-      ?.title,
+      ?.title ?? '',
   }
 
   const streamingData: Map<
@@ -513,29 +541,29 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   return Array.from(episodeMap.values()).sort((a, b) => a.number - b.number)
 }
 
-// await Bun.write(
-//   'episodes.json',
-//   JSON.stringify(
-//     await getEpisodes({
-//       type: 'TV',
-//       anidb_id: 16188,
-//       anilist_id: 132052,
-//       animecountdown_id: 1604475,
-//       'anime-planet_id': 'a-couple-of-cuckoos',
-//       anisearch_id: 16163,
-//       imdb_id: 'tt14400866',
-//       kitsu_id: 44310,
-//       livechart_id: 10346,
-//       mal_id: 48675,
-//       simkl_id: 1604475,
-//       themoviedb_id: 122587,
-//       tvdb_id: 400585,
-//       season: {
-//         tvdb: 1,
-//         tmdb: 1,
-//       },
-//     }),
-//     null,
-//     2,
-//   ),
-// )
+await Bun.write(
+  'episodes.json',
+  JSON.stringify(
+    await getMap({
+      type: 'TV',
+      anidb_id: 16188,
+      anilist_id: 132052,
+      animecountdown_id: 1604475,
+      'anime-planet_id': 'a-couple-of-cuckoos',
+      anisearch_id: 16163,
+      imdb_id: 'tt14400866',
+      kitsu_id: 44310,
+      livechart_id: 10346,
+      mal_id: 48675,
+      simkl_id: 1604475,
+      themoviedb_id: 122587,
+      tvdb_id: 400585,
+      season: {
+        tvdb: 1,
+        tmdb: 1,
+      },
+    }),
+    null,
+    2,
+  ),
+)
