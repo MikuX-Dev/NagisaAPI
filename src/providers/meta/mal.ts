@@ -355,7 +355,7 @@ class MyAnimeList extends MetaBase {
         relations.push({
           relationType,
           id,
-          titles: [{ languageCode: 'en', title }],
+          titles: [{ languageCode: 'english', title }],
           format: formatText as AnilistMediaFormat,
           type: relationText.split('(')[0]?.trim() as string,
         })
@@ -433,11 +433,11 @@ class MyAnimeList extends MetaBase {
 
       const titles = []
       if (englishTitle) {
-        titles.push({ languageCode: 'en', title: englishTitle })
+        titles.push({ languageCode: 'english', title: englishTitle })
       }
       if (japaneseTitle) {
         const cleanJapanese = japaneseTitle.replace(/^[^\(]*\(|\)$/g, '').trim()
-        titles.push({ languageCode: 'ja', title: cleanJapanese })
+        titles.push({ languageCode: 'japanese', title: cleanJapanese })
       }
 
       const episodeTypeBadge = titleEl

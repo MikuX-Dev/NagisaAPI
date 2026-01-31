@@ -346,6 +346,7 @@ class TheMovieDB extends MetaBase {
           ago: formatDistance(new Date(episode.air_date), new Date(), {
             addSuffix: true,
           }),
+          number: episode.episode_number,
           createdAt: Date.now(),
           updatedAt: new Date(episode.air_date).getTime(),
         }

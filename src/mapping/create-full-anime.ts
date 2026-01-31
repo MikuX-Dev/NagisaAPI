@@ -22,12 +22,14 @@ import type {
   IStatus,
   ITag,
   ITitle,
+  Episode,
 } from '../types/anime'
 
 import type {
   CrysolineProviderEpisode,
   FribbAnime,
   IRelation,
+  ProviderEpisode,
   ProviderInfo,
   ProviderSearch,
 } from '../types/provider'
@@ -36,6 +38,7 @@ import { getDominantColor } from '../helper/get-color'
 
 import { FindBestMatchByTitles } from './helpers/find-best-match'
 import { cleanTitle } from './helpers/sanitize-title'
+import Miyako from '../providers/anime/miyako-anizone'
 
 export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const providers = {
@@ -263,29 +266,258 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
   return info
 }
 
-// await Bun.write(
-//   'index.json',
-//   JSON.stringify(
-//     await getMap({
-//       type: 'TV',
-//       anidb_id: 16188,
-//       anilist_id: 132052,
-//       animecountdown_id: 1604475,
-//       'anime-planet_id': 'a-couple-of-cuckoos',
-//       anisearch_id: 16163,
-//       imdb_id: 'tt14400866',
-//       kitsu_id: 44310,
-//       livechart_id: 10346,
-//       mal_id: 48675,
-//       simkl_id: 1604475,
-//       themoviedb_id: 122587,
-//       tvdb_id: 400585,
-//       season: {
-//         tvdb: 1,
-//         tmdb: 1,
-//       },
-//     }),
-//     null,
-//     2,
-//   ),
-// )
+export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
+  const providers = {
+    anidb: new Anidb(),
+    simkl: new Simkl(),
+    mal: new MyAnimeList(),
+    tmdb: new TheMovieDB(),
+  }
+
+  const metaResults = await Promise.allSettled([
+    providers.anidb.getEpisodes(anime),
+    providers.simkl.getEpisodes(anime),
+    providers.mal.getEpisodes(anime),
+    providers.tmdb.getEpisodes(anime),
+  ])
+
+  const getMetaData = (index: number): ProviderEpisode[] | undefined =>
+    metaResults[index]?.status === 'fulfilled'
+      ? (
+          metaResults[index] as PromiseFulfilledResult<
+            ProviderEpisode[] | undefined
+          >
+        ).value
+      : undefined
+
+  const metaData = {
+    anidb: getMetaData(0),
+    simkl: getMetaData(1),
+    mal: getMetaData(2),
+    tmdb: getMetaData(3),
+  }
+
+  const streamingProviders = [
+    { name: 'nagisa', instance: new Nagisa() },
+    {
+      name: 'miyako',
+      instance: new Miyako(),
+    },
+  ]
+
+  const anilist = new Anilist()
+  const anilistInfo = await anilist.getInfo(anime)
+
+  const titleToMap = {
+    english: anilistInfo?.titles.find((t) => t.languageCode === 'english')
+      ?.title,
+    romaji: anilistInfo?.titles.find((t) => t.languageCode === 'romaji')?.title,
+    native: anilistInfo?.titles.find((t) => t.languageCode === 'japanese')
+      ?.title,
+  }
+
+  const streamingData: Map<
+    string,
+    {
+      episodes: CrysolineProviderEpisode[]
+      providerTypes: ('SUB' | 'DUB' | 'H-SUB')[]
+    }
+  > = new Map()
+
+  for (const provider of streamingProviders) {
+    const searchResults = await provider.instance.search(
+      cleanTitle(
+        titleToMap.english ??
+          titleToMap.romaji ??
+          titleToMap.native ??
+          anime.mal_id?.toString() ??
+          '',
+      ),
+    )
+
+    if (searchResults && searchResults.length > 0) {
+      const bestMatches = FindBestMatchByTitles(titleToMap, searchResults)
+
+      if (
+        bestMatches.mostCommonMatchIndex === 0 ||
+        bestMatches.mostCommonMatchIndex
+      ) {
+        const bestMatch = searchResults[bestMatches.mostCommonMatchIndex]
+        if (bestMatch) {
+          const episodes = await provider.instance.getEpisodes(
+            bestMatch.id.toString(),
+          )
+
+          if (episodes) {
+            streamingData.set(provider.name, {
+              episodes,
+              providerTypes: provider.instance.providerType,
+            })
+          }
+        }
+      }
+    }
+  }
+
+  const mergeTitles = (
+    existing: ITitle[] | null,
+    newTitles: ITitle[] | null,
+  ): ITitle[] | null => {
+    if (!existing && !newTitles) return null
+    if (!existing) return newTitles
+    if (!newTitles) return existing
+
+    const titleMap = new Map<string, ITitle>()
+    existing.forEach((title) => {
+      titleMap.set(title.languageCode, title)
+    })
+    newTitles.forEach((title) => {
+      if (!titleMap.has(title.languageCode)) {
+        titleMap.set(title.languageCode, title)
+      }
+    })
+
+    return Array.from(titleMap.values())
+  }
+
+  const episodeMap = new Map<number, Episode>()
+
+  const allMetaEpisodes = [
+    ...(metaData.tmdb ?? []),
+    ...(metaData.simkl ?? []),
+    ...(metaData.anidb ?? []),
+    ...(metaData.mal ?? []),
+  ]
+
+  allMetaEpisodes.forEach((metaEp) => {
+    if (metaEp.number === undefined) return
+
+    const existing = episodeMap.get(metaEp.number)
+    if (!existing) {
+      episodeMap.set(metaEp.number, {
+        id: nanoid().toString(),
+        titles: metaEp.titles ?? null,
+        thumbnailImage: metaEp.thumbnailImage ?? null,
+        preview: metaEp.preview ?? null,
+        description: metaEp.description ?? null,
+        number: metaEp.number,
+        rating: metaEp.rating ?? null,
+        filler: metaEp.filler ?? false,
+        recap: metaEp.recap ?? false,
+        runtime: metaEp.runtime ?? null,
+        ago: metaEp.ago ?? null,
+        providers: [],
+        createdAt: metaEp.createdAt ?? Date.now(),
+        updatedAt: metaEp.updatedAt ?? Date.now(),
+      })
+    } else {
+      episodeMap.set(metaEp.number, {
+        ...existing,
+        titles: mergeTitles(existing.titles, metaEp.titles ?? null),
+        thumbnailImage:
+          existing.thumbnailImage ?? metaEp.thumbnailImage ?? null,
+        preview: existing.preview ?? metaEp.preview ?? null,
+        description: existing.description ?? metaEp.description ?? null,
+        rating: existing.rating ?? metaEp.rating ?? null,
+        filler: existing.filler || (metaEp.filler ?? false),
+        recap: existing.recap || (metaEp.recap ?? false),
+        runtime: existing.runtime ?? metaEp.runtime ?? null,
+        ago: existing.ago ?? metaEp.ago ?? null,
+        updatedAt: Date.now(),
+      })
+    }
+  })
+
+  streamingData.forEach((providerData, providerName) => {
+    providerData.episodes.forEach((streamEp) => {
+      if (streamEp.number === undefined) return
+
+      const existing = episodeMap.get(streamEp.number)
+
+      const episodeProviderTypes = providerData.providerTypes
+
+      const streamEpTitles = streamEp.title
+        ? [{ languageCode: 'english', title: streamEp.title }]
+        : null
+
+      if (!existing) {
+        episodeMap.set(streamEp.number, {
+          id: nanoid().toString(),
+          titles: streamEpTitles,
+          thumbnailImage: streamEp.thumbnailImage ?? null,
+          preview: streamEp.preview ?? null,
+          description: streamEp.description ?? null,
+          number: streamEp.number,
+          rating: streamEp.rating ?? null,
+          filler: streamEp.filler ?? false,
+          recap: streamEp.recap ?? false,
+          runtime: streamEp.runtime ?? null,
+          ago: null,
+          providers: [{ providerType: episodeProviderTypes, providerName }],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })
+      } else {
+        const providers = [...existing.providers]
+        const existingProvider = providers.find(
+          (p) => p.providerName === providerName,
+        )
+
+        if (existingProvider) {
+          existingProvider.providerType = [
+            ...new Set([
+              ...existingProvider.providerType,
+              ...episodeProviderTypes,
+            ]),
+          ]
+        } else {
+          providers.push({ providerType: episodeProviderTypes, providerName })
+        }
+
+        episodeMap.set(streamEp.number, {
+          ...existing,
+          titles: mergeTitles(existing.titles, streamEpTitles),
+          thumbnailImage:
+            existing.thumbnailImage ?? streamEp.thumbnailImage ?? null,
+          preview: existing.preview ?? streamEp.preview ?? null,
+          description: existing.description ?? streamEp.description ?? null,
+          rating: existing.rating ?? streamEp.rating ?? null,
+          filler: existing.filler || (streamEp.filler ?? false),
+          recap: existing.recap || (streamEp.recap ?? false),
+          runtime: existing.runtime ?? streamEp.runtime ?? null,
+          providers,
+          updatedAt: Date.now(),
+        })
+      }
+    })
+  })
+
+  return Array.from(episodeMap.values()).sort((a, b) => a.number - b.number)
+}
+
+await Bun.write(
+  'episodes.json',
+  JSON.stringify(
+    await getEpisodes({
+      type: 'TV',
+      anidb_id: 16188,
+      anilist_id: 132052,
+      animecountdown_id: 1604475,
+      'anime-planet_id': 'a-couple-of-cuckoos',
+      anisearch_id: 16163,
+      imdb_id: 'tt14400866',
+      kitsu_id: 44310,
+      livechart_id: 10346,
+      mal_id: 48675,
+      simkl_id: 1604475,
+      themoviedb_id: 122587,
+      tvdb_id: 400585,
+      season: {
+        tvdb: 1,
+        tmdb: 1,
+      },
+    }),
+    null,
+    2,
+  ),
+)

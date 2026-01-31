@@ -7,12 +7,12 @@ import type {
 
 import { AnimeBase } from '../base/anime'
 
-class Nagisa extends AnimeBase {
-  override name: string = 'nagisa'
-  override url = 'https://anikai.to'
-  override providerType: ('H-SUB' | 'SUB' | 'DUB')[] = ['H-SUB', 'DUB']
+class Miyako extends AnimeBase {
+  override name: string = 'miyako'
+  override url = 'https://anizone.to'
+  override providerType: ('H-SUB' | 'SUB' | 'DUB')[] = ['SUB', 'DUB']
 
-  private provider = Anime.AnimeKai(this.apiKey)
+  private provider = Anime.AniZone(this.apiKey)
 
   override async search(query: string): Promise<ProviderSearch[] | undefined> {
     try {
@@ -78,8 +78,9 @@ class Nagisa extends AnimeBase {
             title: r.title ?? '',
           },
         ],
+        preview: r.teaserUrl,
         id: r.id?.toString(),
-        hasDub: r.metadata?.dub,
+        hasDub: false,
         number: r.number ?? idx + 1,
 
         createdAt: Date.now(),
@@ -93,4 +94,4 @@ class Nagisa extends AnimeBase {
   }
 }
 
-export default Nagisa
+export default Miyako

@@ -121,7 +121,7 @@ export interface Info {
   updatedAt: number
 }
 
-export interface ProviderEpisode {
+export interface Episode {
   id: string | null
   titles: ITitle[] | null
   thumbnailImage: string | null
@@ -133,7 +133,10 @@ export interface ProviderEpisode {
   recap: boolean
   runtime: number | null
   ago: string | null
-  providers: { providerType: 'sub' | 'dub' | 'h-sub'; providerName: string }[]
+  providers: {
+    providerType: ('SUB' | 'DUB' | 'H-SUB')[]
+    providerName: string
+  }[]
 
   createdAt: number
   updatedAt: number
