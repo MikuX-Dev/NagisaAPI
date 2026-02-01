@@ -560,29 +560,29 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   return Array.from(episodeMap.values()).sort((a, b) => a.number - b.number)
 }
 
-await Bun.write(
-  'episodes.json',
-  JSON.stringify(
-    await getMap({
-      type: 'TV',
-      anidb_id: 16188,
-      anilist_id: 132052,
-      animecountdown_id: 1604475,
-      'anime-planet_id': 'a-couple-of-cuckoos',
-      anisearch_id: 16163,
-      imdb_id: 'tt14400866',
-      kitsu_id: 44310,
-      livechart_id: 10346,
-      mal_id: 48675,
-      simkl_id: 1604475,
-      themoviedb_id: 122587,
-      tvdb_id: 400585,
-      season: {
-        tvdb: 1,
-        tmdb: 1,
-      },
-    }),
-    null,
-    2,
-  ),
-)
+// await Bun.write(
+//   'episodes.json',
+//   JSON.stringify(
+//     await getMap({
+//       type: 'TV',
+//       anidb_id: 16188,
+//       anilist_id: 132052,
+//       animecountdown_id: 1604475,
+//       'anime-planet_id': 'a-couple-of-cuckoos',
+//       anisearch_id: 16163,
+//       imdb_id: 'tt14400866',
+//       kitsu_id: 44310,
+//       livechart_id: 10346,
+//       mal_id: 48675,
+//       simkl_id: 1604475,
+//       themoviedb_id: 122587,
+//       tvdb_id: 400585,
+//       season: {
+//         tvdb: 1,
+//         tmdb: 1,
+//       },
+//     }),
+//     null,
+//     2,
+//   ),
+// )
