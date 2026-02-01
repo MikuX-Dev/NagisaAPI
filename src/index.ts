@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import Elysia from 'elysia'
 
 import { redis } from './database/cache'
+import { apiRoutes } from './routes/api.routes'
 
 const pastelPink = chalk.hex('#ffb7c5')
 const pastelBlue = chalk.hex('#b5e8ff')
@@ -17,6 +18,7 @@ new Elysia()
   .get('/', () => ({
     message: 'Elo! Fuck uu<3 uwu',
   }))
+  .use(apiRoutes)
   .get('/redis', async () => {
     try {
       const p = await redis.ping()

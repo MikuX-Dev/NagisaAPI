@@ -12,11 +12,18 @@ import {
 const animeRoutes = new Elysia({ prefix: '/anime' })
   .get(
     '/:id',
-    async ({ params }) => {
+    async ({ params, set }) => {
       try {
         const { id } = params
 
         const anime = await getInfo(id)
+        if (!anime?.id) {
+          set.status = 404
+          return createErrorResponse(
+            'Could not find the anime in the database.',
+            ErrorCodes.NOT_FOUND,
+          )
+        }
         const episodes = await getEpisodes(id)
 
         // Todo: Use workers to update the info in the background if the anime status is not finished or cancelled.
@@ -30,6 +37,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
       } catch (error) {
         // Todo: Move to error handler in future. Instead of repetition.
         if (error instanceof HTTPError) {
+          set.status = 500
           return createErrorResponse(
             'An API fucked us :c',
             ErrorCodes.EXTERNAL_API_ERROR,
@@ -39,6 +47,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           )
         }
         if (error instanceof Error) {
+          set.status = 500
           return createErrorResponse(
             `We got fucked :(`,
             ErrorCodes.SERVER_ERROR,
@@ -57,7 +66,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
   )
   .get(
     '/:id/episodes',
-    async ({ params, query }) => {
+    async ({ params, query, set }) => {
       try {
         const { id } = params
         const { limit, offset, orderBy } = query
@@ -68,12 +77,22 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           orderBy,
         })
 
+        if (episodes.length <= 0) {
+          set.status = 404
+          return createErrorResponse(
+            `Could not find episodes for id: \`${id}\`.`,
+            ErrorCodes.NOT_FOUND,
+          )
+        }
+
         // Todo: Use workers to update the episodes in the background always
 
         return createSuccessResponse(episodes)
       } catch (error) {
         // Todo: Move to error handler in future. Instead of repetition.
         if (error instanceof HTTPError) {
+          set.status = 500
+
           return createErrorResponse(
             'An API fucked us :c',
             ErrorCodes.EXTERNAL_API_ERROR,
@@ -83,6 +102,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           )
         }
         if (error instanceof Error) {
+          set.status = 500
           return createErrorResponse(
             `We got fucked :(`,
             ErrorCodes.SERVER_ERROR,
