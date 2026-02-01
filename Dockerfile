@@ -16,5 +16,9 @@ COPY . .
 
 RUN bun install
 
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
 # Start app
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["bun", "start"]
