@@ -1,12 +1,13 @@
-import type { KyInstance } from 'ky'
+import { Meta } from '@crysoline/lib'
+import ky, { type KyInstance } from 'ky'
+
 import type {
   CrysolineProviderEpisode,
   ProviderInfo,
   ProviderSearch,
 } from '../../types/provider'
+
 import { AnimeBase } from '../base/anime'
-import ky from 'ky'
-import { Meta } from '@crysoline/lib'
 
 class Toki extends AnimeBase {
   override name: string = 'toki'
