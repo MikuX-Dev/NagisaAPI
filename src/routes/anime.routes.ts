@@ -2,12 +2,17 @@ import Elysia from 'elysia'
 import { HTTPError } from 'ky'
 import { z } from 'zod'
 
+import { redis } from '../database/cache'
 import { getEpisodes, getInfo } from '../database/functions'
+
+import { getRedisKey } from '../helper/redis-keys'
 import {
   createErrorResponse,
   createSuccessResponse,
   ErrorCodes,
 } from '../helper/response'
+
+const CACHE_TTL = 60 * 60
 
 const animeRoutes = new Elysia({ prefix: '/anime' })
   .get(
@@ -15,6 +20,12 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
     async ({ params, set }) => {
       try {
         const { id } = params
+        const cacheKey = getRedisKey('anime', id)
+
+        const cached = await redis.get(cacheKey)
+        if (cached) {
+          return createSuccessResponse(JSON.parse(cached))
+        }
 
         const anime = await getInfo(id)
         if (!anime?.id) {
@@ -32,6 +43,8 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           ...anime,
           episodes,
         }
+
+        await redis.set(cacheKey, JSON.stringify(info), 'EX', CACHE_TTL)
 
         return createSuccessResponse(info)
       } catch (error) {
@@ -71,6 +84,16 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         const { id } = params
         const { limit, offset, orderBy } = query
 
+        const cacheKey = getRedisKey(
+          'episodes',
+          `${id}:${limit ?? 'all'}:${offset ?? 0}:${orderBy ?? 'asc'}`,
+        )
+
+        const cached = await redis.get(cacheKey)
+        if (cached) {
+          return createSuccessResponse(JSON.parse(cached))
+        }
+
         const episodes = await getEpisodes(id, {
           limit,
           offset,
@@ -86,6 +109,8 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         }
 
         // Todo: Use workers to update the episodes in the background always
+
+        await redis.set(cacheKey, JSON.stringify(episodes), 'EX', CACHE_TTL)
 
         return createSuccessResponse(episodes)
       } catch (error) {
