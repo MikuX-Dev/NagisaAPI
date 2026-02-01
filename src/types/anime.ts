@@ -96,6 +96,7 @@ export interface Info {
   slug: string
   titles: ITitle[]
   synonyms: string[]
+  externalIds: Record<string, string>
   coverImage: string | null
   bannerImage: string | null
   logoImage: string | null
