@@ -4,8 +4,9 @@ import Elysia from 'elysia'
 
 import { redis } from './database/cache'
 import { apiRoutes } from './routes/api.routes'
-import { crawlQueue } from './queue'
+import { crawlQueue, scheduleDailyUpdate } from './queue'
 import { createSuccessResponse } from './helper/response'
+import { getAnimeCount } from './database/functions'
 await import('./workers/index')
 
 const pastelPink = chalk.hex('#ffb7c5')
@@ -18,16 +19,25 @@ const HOST = 'localhost'
 
 new Elysia()
   .use(cors())
+  .onStart(async () => {
+    await scheduleDailyUpdate()
+
+    const existingCount = await getAnimeCount()
+    if (existingCount === 0) {
+      console.log('🚀 DB is empty. Triggering initial crawl...')
+      await crawlQueue.add('initial-crawl', {})
+    }
+  })
   .get('/', () => ({
     message: 'Elo! Fuck uu<3 uwu',
   }))
-  .get('/start-crawl', async () => {
-    const job = await crawlQueue.add('start-crawl', {})
-    return createSuccessResponse({
-      message: 'Crawl started.',
-      jobId: job.id,
-    })
-  })
+  // .get('/start-crawl', async () => {
+  //   const job = await crawlQueue.add('start-crawl', {})
+  //   return createSuccessResponse({
+  //     message: 'Crawl started.',
+  //     jobId: job.id,
+  //   })
+  // })
   .use(apiRoutes)
   .get('/redis', async () => {
     try {

@@ -1,16 +1,20 @@
-import { addInfo, addEpisodes } from '../database/functions'
+import { addInfo, addEpisodes, getAllAnilistIds } from '../database/functions'
 import { getMap, getEpisodes } from '../mapping/create-full-anime'
 import { getFribbList } from './fribb'
 
 const PROGRESS_FILE = 'crawl-progress.json'
 
 let isShuttingDown = false
+let isCrawlInProgress = false
 
 export const stopCrawl = () => {
   isShuttingDown = true
 }
 
 export const startCrawl = async () => {
+  if (isCrawlInProgress) return
+  isCrawlInProgress = true
+
   isShuttingDown = false
 
   console.log('🚀 Starting Anime Crawler...')
@@ -153,6 +157,8 @@ export const startCrawl = async () => {
         `   ❌ CRITICAL ERROR processing ${anime.anilist_id}:`,
         error,
       )
+    } finally {
+      isCrawlInProgress = false
     }
 
     console.log('   💤 Sleeping for 5s...')
@@ -163,5 +169,100 @@ export const startCrawl = async () => {
     console.log('👋 Crawler paused gracefully. Progress saved.')
   } else {
     console.log('🎉 Crawl Finished!')
+  }
+}
+
+async function processSingleAnime(anime: any) {
+  try {
+    const mapData = await getMap(anime)
+
+    if (!mapData) {
+      console.warn(`   ⚠️ No metadata found for ${anime.anilist_id}. Skipping.`)
+      return
+    }
+
+    const {
+      id: _ignoreId,
+      createdAt: _ignoreCreated,
+      updatedAt: _ignoreUpdated,
+      studio: studioData,
+      ...restInfo
+    } = mapData
+
+    const savedInfo = await addInfo({
+      ...restInfo,
+      studios: studioData?.map((s) => ({ id: 0, name: s.name })) ?? [],
+      genres: restInfo.genres?.map((g) => ({ id: 0, name: g.name })) ?? [],
+      tags: restInfo.tags?.map((t) => ({ id: 0, name: t.name })) ?? [],
+    })
+
+    if (!savedInfo?.id) {
+      console.error(`   ❌ Failed to get a saved ID for ${anime.anilist_id}`)
+      return
+    }
+
+    const fetchedEpisodes = await getEpisodes(anime)
+
+    if (fetchedEpisodes && fetchedEpisodes.length > 0) {
+      const episodesToInsert = fetchedEpisodes.map((ep: any) => {
+        const { id, createdAt, updatedAt, ...epRest } = ep
+        return {
+          ...epRest,
+          infoId: savedInfo.id,
+        }
+      })
+
+      await addEpisodes(episodesToInsert)
+      console.log(
+        `   ✅ Success: Saved Info & ${episodesToInsert.length} Episodes.`,
+      )
+    } else {
+      console.log(`   ✅ Success: Saved Info (No episodes found).`)
+    }
+  } catch (error) {
+    throw error
+  }
+}
+
+export const checkForUpdates = async () => {
+  if (isCrawlInProgress) {
+    console.log('⏳ Big crawl is in progress. Skipping daily update check.')
+    return
+  }
+
+  console.log('🔍 Checking for new anime updates...')
+
+  const fullList = await getFribbList()
+  if (!fullList) return
+
+  const existingIds = await getAllAnilistIds()
+  const existingSet = new Set(existingIds)
+
+  const missingAnime = fullList.filter(
+    (anime) => !existingSet.has(Number(anime.anilist_id)),
+  )
+
+  if (missingAnime.length === 0) {
+    console.log('✅ Database is already up to date.')
+    return
+  }
+
+  console.log(`✨ Found ${missingAnime.length} new titles to add.`)
+
+  for (let i = 0; i < missingAnime.length; i++) {
+    if (isShuttingDown) break
+
+    const anime = missingAnime[i]
+    console.log(
+      `[Update ${i + 1}/${missingAnime.length}] Syncing: ${anime?.anilist_id}`,
+    )
+
+    try {
+      await processSingleAnime(anime)
+    } catch (err) {
+      console.error(`❌ Failed to sync ${anime?.anilist_id}:`, err)
+    }
+
+    await Bun.sleep(5000)
   }
 }

@@ -31,6 +31,22 @@ export const crawlQueue = new Queue('anime-crawl', {
   connection: redisConnection,
 })
 
+const crawlerQueue = new Queue('anime-crawl', { connection: redisConnection })
+
+export const scheduleDailyUpdate = async () => {
+  await crawlerQueue.add(
+    'daily-update',
+    {},
+    {
+      repeat: {
+        pattern: '0 0 * * *',
+      },
+      jobId: 'daily-anime-sync',
+    },
+  )
+  console.log('📅 Daily update cron scheduled for 00:00')
+}
+
 export interface AnimeUpdatePayload {
   infoId: string
 }

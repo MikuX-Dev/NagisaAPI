@@ -594,6 +594,22 @@ export async function search(options: SearchOptions = {}) {
   return resultsWithKeywords
 }
 
+export const getAllAnilistIds = async (): Promise<number[]> => {
+  const result = await db
+    .select({
+      anilistId: sql<string>`${info.externalIds}->>'anilistId'`,
+    })
+    .from(info)
+
+  return result
+    .map((row) => (row.anilistId ? parseInt(row.anilistId, 10) : null))
+    .filter((id): id is number => id !== null && !isNaN(id))
+}
+
+export const getAnimeCount = async (): Promise<number> => {
+  return await db.$count(info)
+}
+
 // await Bun.write(
 //   'db-info.json',
 //   JSON.stringify(
