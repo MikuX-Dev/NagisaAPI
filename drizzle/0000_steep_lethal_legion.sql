@@ -1,5 +1,5 @@
 CREATE TABLE "episode" (
-	"id" text NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"info_id" text NOT NULL,
 	"titles" jsonb,
 	"thumbnail_image" text,
@@ -14,7 +14,7 @@ CREATE TABLE "episode" (
 	"providers" jsonb NOT NULL,
 	"created_at" text NOT NULL,
 	"updated_at" text NOT NULL,
-	CONSTRAINT "episode_id_info_id_pk" PRIMARY KEY("id","info_id")
+	CONSTRAINT "episode_info_id_number_unique" UNIQUE("info_id","number")
 );
 --> statement-breakpoint
 CREATE TABLE "genre" (

@@ -1,5 +1,5 @@
 {
-  "id": "001e6213-4eab-4ded-a8bf-154a98a817e8",
+  "id": "50cc1e95-6d4e-4622-8221-a894634b1f42",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -11,7 +11,7 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
+          "primaryKey": true,
           "notNull": true
         },
         "info_id": {
@@ -142,13 +142,14 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "episode_id_info_id_pk": {
-          "name": "episode_id_info_id_pk",
-          "columns": ["id", "info_id"]
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "episode_info_id_number_unique": {
+          "name": "episode_info_id_number_unique",
+          "nullsNotDistinct": false,
+          "columns": ["info_id", "number"]
         }
       },
-      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
