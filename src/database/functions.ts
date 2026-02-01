@@ -15,26 +15,87 @@ import {
 import { keywordsNanoId, nanoid } from '../id-gen/nanoid'
 import { db } from './db'
 
-// TODO TAGS AND STUDIOS NEEDS TO HAVE THEIR OWN SCHEMA TOO.
-
 import {
   episode,
   genre,
   info,
   infoToGenre,
+  infoToStudio,
+  infoToTag,
+  studio,
+  tag,
   type EpisodeInsert,
   type InfoInsert,
 } from './schema'
 
+type KeywordTable = typeof genre | typeof tag | typeof studio
+type JunctionTable = typeof infoToGenre | typeof infoToTag | typeof infoToStudio
+
+async function upsertAndLink(
+  keywordTable: KeywordTable,
+  junctionTable: JunctionTable,
+  infoId: string,
+  names: string[],
+) {
+  if (names.length === 0) return
+
+  for (const name of names) {
+    await db
+      .insert(keywordTable)
+      .values({ id: keywordsNanoId(), name })
+      .onConflictDoNothing()
+  }
+
+  const existing = await db
+    .select({ id: keywordTable.id })
+    .from(keywordTable)
+    .where(inArray(keywordTable.name, names))
+
+  if (existing.length === 0) return
+
+  const rows = existing.map((row) => {
+    if (junctionTable === infoToGenre) return { infoId, genreId: row.id }
+    if (junctionTable === infoToTag) return { infoId, tagId: row.id }
+    return { infoId, studioId: row.id }
+  })
+
+  await db.insert(junctionTable).values(rows).onConflictDoNothing()
+}
+async function getLinkedKeywords(
+  keywordTable: KeywordTable,
+  junctionTable: JunctionTable,
+  infoId: string,
+) {
+  const fkColumn =
+    junctionTable === infoToGenre
+      ? infoToGenre.genreId
+      : junctionTable === infoToTag
+        ? infoToTag.tagId
+        : infoToStudio.studioId
+
+  return db
+    .select({ id: keywordTable.id, name: keywordTable.name })
+    .from(junctionTable)
+    .innerJoin(keywordTable, eq(fkColumn, keywordTable.id))
+    .where(eq(junctionTable.infoId, infoId))
+}
+
 export async function addInfo(
   data: Omit<InfoInsert, 'id' | 'createdAt' | 'updatedAt'> & {
     genres: Array<{ id: number; name: string }>
+    tags: Array<{ id: number; name: string }>
+    studios: Array<{ id: number; name: string }>
   },
 ) {
   const now = Date.now()
   const infoId = nanoid()
 
-  const { genres: genreData, ...infoData } = data
+  const {
+    genres: genreData,
+    tags: tagData,
+    studios: studioData,
+    ...infoData
+  } = data
 
   const [insertedInfo] = await db
     .insert(info)
@@ -46,39 +107,24 @@ export async function addInfo(
     })
     .returning()
 
-  if (genreData.length > 0) {
-    for (const genreItem of genreData) {
-      await db
-        .insert(genre)
-        .values({
-          id: keywordsNanoId(),
-          name: genreItem.name,
-        })
-        .onConflictDoNothing()
-    }
-
-    const genreNames = genreData.map((g) => g.name)
-    const existingGenres = await db
-      .select()
-      .from(genre)
-      .where(inArray(genre.name, genreNames))
-
-    const infoToGenreValues = existingGenres.map((g) => ({
-      infoId: insertedInfo?.id,
-      genreId: g.id,
-    }))
-
-    if (infoToGenreValues.length > 0) {
-      const filteredValues = infoToGenreValues.filter(
-        (v) => v.infoId !== undefined,
-      ) as {
-        infoId: string
-        genreId: string
-      }[]
-
-      await db.insert(infoToGenre).values(filteredValues).onConflictDoNothing()
-    }
-  }
+  await upsertAndLink(
+    genre,
+    infoToGenre,
+    infoId,
+    genreData.map((g) => g.name),
+  )
+  await upsertAndLink(
+    tag,
+    infoToTag,
+    infoId,
+    tagData.map((t) => t.name),
+  )
+  await upsertAndLink(
+    studio,
+    infoToStudio,
+    infoId,
+    studioData.map((s) => s.name),
+  )
 
   return insertedInfo
 }
@@ -87,10 +133,17 @@ export async function updateInfo(
   infoId: string,
   data: Partial<Omit<InfoInsert, 'id' | 'createdAt' | 'updatedAt'>> & {
     genres?: Array<{ id: number; name: string }>
+    tags?: Array<{ id: number; name: string }>
+    studios?: Array<{ id: number; name: string }>
   },
 ) {
   const now = Date.now()
-  const { genres: genreData, ...infoData } = data
+  const {
+    genres: genreData,
+    tags: tagData,
+    studios: studioData,
+    ...infoData
+  } = data
 
   const [updatedInfo] = await db
     .update(info)
@@ -101,40 +154,34 @@ export async function updateInfo(
     .where(eq(info.id, infoId))
     .returning()
 
-  if (genreData && genreData.length > 0) {
+  if (genreData) {
     await db.delete(infoToGenre).where(eq(infoToGenre.infoId, infoId))
+    await upsertAndLink(
+      genre,
+      infoToGenre,
+      infoId,
+      genreData.map((g) => g.name),
+    )
+  }
 
-    for (const genreItem of genreData) {
-      await db
-        .insert(genre)
-        .values({
-          id: nanoid(),
-          name: genreItem.name,
-        })
-        .onConflictDoNothing()
-    }
+  if (tagData) {
+    await db.delete(infoToTag).where(eq(infoToTag.infoId, infoId))
+    await upsertAndLink(
+      tag,
+      infoToTag,
+      infoId,
+      tagData.map((t) => t.name),
+    )
+  }
 
-    const genreNames = genreData.map((g) => g.name)
-    const existingGenres = await db
-      .select()
-      .from(genre)
-      .where(inArray(genre.name, genreNames))
-
-    const infoToGenreValues = existingGenres.map((g) => ({
-      infoId: updatedInfo?.id,
-      genreId: g.id,
-    }))
-
-    if (infoToGenreValues.length > 0) {
-      const filteredValues = infoToGenreValues.filter(
-        (v) => v.infoId !== undefined,
-      ) as {
-        infoId: string
-        genreId: string
-      }[]
-
-      await db.insert(infoToGenre).values(filteredValues).onConflictDoNothing()
-    }
+  if (studioData) {
+    await db.delete(infoToStudio).where(eq(infoToStudio.infoId, infoId))
+    await upsertAndLink(
+      studio,
+      infoToStudio,
+      infoId,
+      studioData.map((s) => s.name),
+    )
   }
 
   return updatedInfo
@@ -147,19 +194,17 @@ export async function getInfo(infoId: string) {
     return null
   }
 
-  // Get genres for this info
-  const genreResults = await db
-    .select({
-      id: genre.id,
-      name: genre.name,
-    })
-    .from(infoToGenre)
-    .innerJoin(genre, eq(infoToGenre.genreId, genre.id))
-    .where(eq(infoToGenre.infoId, infoId))
+  const [genres, tags, studios] = await Promise.all([
+    getLinkedKeywords(genre, infoToGenre, infoId),
+    getLinkedKeywords(tag, infoToTag, infoId),
+    getLinkedKeywords(studio, infoToStudio, infoId),
+  ])
 
   return {
     ...infoResult,
-    genres: genreResults,
+    genres,
+    tags,
+    studios,
   }
 }
 
@@ -227,8 +272,15 @@ export async function getEpisodes(
 }
 
 export async function getGenres() {
-  const genres = await db.select().from(genre)
-  return genres
+  return db.select().from(genre)
+}
+
+export async function getTags() {
+  return db.select().from(tag)
+}
+
+export async function getStudios() {
+  return db.select().from(studio)
 }
 
 export interface SearchOptions {
@@ -275,6 +327,7 @@ export interface SearchOptions {
   characterName?: string
   studioName?: string
   genreNames?: string[]
+  tagNames?: string[]
   limit?: number
   offset?: number
   orderBy?: 'createdAt' | 'updatedAt' | 'rating' | 'totalEpisodes'
@@ -284,7 +337,7 @@ export interface SearchOptions {
 export async function search(options: SearchOptions = {}) {
   const {
     query,
-    tags,
+    tags: tagFilter,
     status,
     season,
     format,
@@ -302,6 +355,7 @@ export async function search(options: SearchOptions = {}) {
     characterName,
     studioName,
     genreNames,
+    tagNames,
     limit = 50,
     offset = 0,
     orderBy = 'createdAt',
@@ -320,14 +374,23 @@ export async function search(options: SearchOptions = {}) {
     )
   }
 
-  if (tags && tags.length > 0) {
-    const tagNames = tags.map((t) => t.name)
-    conditions.push(
-      sql`EXISTS (
-        SELECT 1 FROM jsonb_array_elements(${info.tags}) AS tag
-        WHERE tag->>'name' = ANY(${tagNames})
-      )`,
-    )
+  if (tagFilter && tagFilter.length > 0) {
+    const tagNameList = tagFilter.map((t) => t.name)
+    const tagRecords = await db
+      .select()
+      .from(tag)
+      .where(inArray(tag.name, tagNameList))
+    const tagIds = tagRecords.map((t) => t.id)
+
+    if (tagIds.length > 0) {
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM ${infoToTag}
+          WHERE ${infoToTag.infoId} = ${info.id}
+          AND ${infoToTag.tagId} = ANY(${tagIds})
+        )`,
+      )
+    }
   }
 
   if (status) {
@@ -415,12 +478,21 @@ export async function search(options: SearchOptions = {}) {
   }
 
   if (studioName) {
-    conditions.push(
-      sql`EXISTS (
-        SELECT 1 FROM jsonb_array_elements(${info.studio}) AS studio
-        WHERE studio->>'name' ILIKE ${`%${studioName}%`}
-      )`,
-    )
+    const studioRecords = await db
+      .select()
+      .from(studio)
+      .where(like(studio.name, `%${studioName}%`))
+    const studioIds = studioRecords.map((s) => s.id)
+
+    if (studioIds.length > 0) {
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM ${infoToStudio}
+          WHERE ${infoToStudio.infoId} = ${info.id}
+          AND ${infoToStudio.studioId} = ANY(${studioIds})
+        )`,
+      )
+    }
   }
 
   if (genreNames && genreNames.length > 0) {
@@ -436,6 +508,24 @@ export async function search(options: SearchOptions = {}) {
           SELECT 1 FROM ${infoToGenre}
           WHERE ${infoToGenre.infoId} = ${info.id}
           AND ${infoToGenre.genreId} = ANY(${genreIds})
+        )`,
+      )
+    }
+  }
+
+  if (tagNames && tagNames.length > 0) {
+    const tagRecords = await db
+      .select()
+      .from(tag)
+      .where(inArray(tag.name, tagNames))
+    const tagIds = tagRecords.map((t) => t.id)
+
+    if (tagIds.length > 0) {
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM ${infoToTag}
+          WHERE ${infoToTag.infoId} = ${info.id}
+          AND ${infoToTag.tagId} = ANY(${tagIds})
         )`,
       )
     }
@@ -468,32 +558,31 @@ export async function search(options: SearchOptions = {}) {
 
   const results = await query_builder
 
-  const resultsWithGenres = await Promise.all(
+  const resultsWithKeywords = await Promise.all(
     results.map(async (infoItem) => {
-      const genreResults = await db
-        .select({
-          id: genre.id,
-          name: genre.name,
-        })
-        .from(infoToGenre)
-        .innerJoin(genre, eq(infoToGenre.genreId, genre.id))
-        .where(eq(infoToGenre.infoId, infoItem.id))
+      const [genres, tags, studios] = await Promise.all([
+        getLinkedKeywords(genre, infoToGenre, infoItem.id),
+        getLinkedKeywords(tag, infoToTag, infoItem.id),
+        getLinkedKeywords(studio, infoToStudio, infoItem.id),
+      ])
 
       return {
         ...infoItem,
-        genres: genreResults,
+        genres,
+        tags,
+        studios,
       }
     }),
   )
 
-  return resultsWithGenres
+  return resultsWithKeywords
 }
 
-await Bun.write(
-  'db-info.json',
-  JSON.stringify(
-    await getInfo('x5kc4dvc09qxsetw'),
-    (_k, v) => (typeof v === 'bigint' ? v.toString() : v),
-    2,
-  ),
-)
+// await Bun.write(
+//   'db-info.json',
+//   JSON.stringify(
+//     await getInfo('qp8b9arkwa1ol5sz'),
+//     (_k, v) => (typeof v === 'bigint' ? v.toString() : v),
+//     2,
+//   ),
+// )
