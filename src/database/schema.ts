@@ -7,6 +7,7 @@ import {
   pgTable,
   primaryKey,
   text,
+  unique,
 } from 'drizzle-orm/pg-core'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
@@ -216,7 +217,10 @@ export const infoToStudio = pgTable(
 export const episode = pgTable(
   'episode',
   {
-    id: text('id').notNull(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => nanoid(32))
+      .notNull(),
     infoId: text('info_id')
       .notNull()
       .references(() => info.id, { onDelete: 'cascade' }),
@@ -243,7 +247,7 @@ export const episode = pgTable(
     updatedAt: text('updated_at').notNull().$type<string>(),
   },
   (table) => [
-    primaryKey({ columns: [table.id, table.infoId] }),
+    unique('episode_info_id_number_unique').on(table.infoId, table.number),
     index('episode_info_id_idx').on(table.infoId),
     index('episode_number_idx').on(table.number),
   ],

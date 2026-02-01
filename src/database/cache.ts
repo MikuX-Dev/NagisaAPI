@@ -9,4 +9,5 @@ const REDIS_PORT = Number.parseInt(REDIS_DATA_ARRAY[1] ?? '6379', 10)
 export const redis = new Redis({
   host: REDIS_HOST,
   port: REDIS_PORT,
+  maxRetriesPerRequest: null,
 })

@@ -209,12 +209,13 @@ export async function getInfo(infoId: string) {
 }
 
 export async function addEpisodes(
-  episodes: Array<Omit<EpisodeInsert, 'createdAt' | 'updatedAt'>>,
+  episodes: Array<Omit<EpisodeInsert, 'createdAt' | 'updatedAt' | 'id'>>,
 ) {
   const now = Date.now()
 
   const episodesToInsert = episodes.map((ep) => ({
     ...ep,
+    id: nanoid(32),
     createdAt: now.toString(),
     updatedAt: now.toString(),
   }))
@@ -222,6 +223,22 @@ export async function addEpisodes(
   const insertedEpisodes = await db
     .insert(episode)
     .values(episodesToInsert)
+    .onConflictDoUpdate({
+      target: [episode.infoId, episode.number],
+      set: {
+        titles: sql`EXCLUDED.titles`,
+        thumbnailImage: sql`EXCLUDED.thumbnail_image`,
+        preview: sql`EXCLUDED.preview`,
+        description: sql`EXCLUDED.description`,
+        rating: sql`EXCLUDED.rating`,
+        filler: sql`EXCLUDED.filler`,
+        recap: sql`EXCLUDED.recap`,
+        runtime: sql`EXCLUDED.runtime`,
+        ago: sql`EXCLUDED.ago`,
+        providers: sql`EXCLUDED.providers`,
+        updatedAt: sql`EXCLUDED.updated_at`,
+      },
+    })
     .returning()
 
   return insertedEpisodes
@@ -229,7 +246,7 @@ export async function addEpisodes(
 
 export async function updateEpisodes(
   episodeId: string,
-  infoId: string,
+  _infoId: string,
   data: Partial<
     Omit<EpisodeInsert, 'id' | 'infoId' | 'createdAt' | 'updatedAt'>
   >,
@@ -242,12 +259,11 @@ export async function updateEpisodes(
       ...data,
       updatedAt: now.toString(),
     })
-    .where(and(eq(episode.id, episodeId), eq(episode.infoId, infoId)))
+    .where(eq(episode.id, episodeId))
     .returning()
 
   return updatedEpisode
 }
-
 export async function getEpisodes(
   infoId: string,
   options?: {
