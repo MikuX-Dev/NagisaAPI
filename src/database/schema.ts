@@ -20,6 +20,7 @@ export const info = pgTable(
       .primaryKey()
       .$defaultFn(() => nanoid()),
     slug: text('slug').notNull(),
+    externalIds: jsonb('external_ids').$type<{ [x: string]: string }>(),
     titles: jsonb('titles')
       .notNull()
       .$type<Array<{ languageCode: string; title: string | null }>>(),
@@ -119,10 +120,6 @@ export const info = pgTable(
         providerId: string
       }>
     >(),
-    studio: jsonb('studio')
-      .notNull()
-      .$type<Array<{ id: number; name: string }>>(),
-    tags: jsonb('tags').notNull().$type<Array<{ id: number; name: string }>>(),
     createdAt: text('created_at').notNull().$type<string>(),
     updatedAt: text('updated_at').notNull().$type<string>(),
   },
@@ -157,6 +154,62 @@ export const infoToGenre = pgTable(
     primaryKey({ columns: [table.infoId, table.genreId] }),
     index('info_to_genre_info_id_idx').on(table.infoId),
     index('info_to_genre_genre_id_idx').on(table.genreId),
+  ],
+)
+
+export const tag = pgTable(
+  'tag',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => keywordsNanoId()),
+    name: text('name').notNull().unique(),
+  },
+  (table) => [index('tag_name_idx').on(table.name)],
+)
+
+export const infoToTag = pgTable(
+  'info_to_tag',
+  {
+    infoId: text('info_id')
+      .notNull()
+      .references(() => info.id, { onDelete: 'cascade' }),
+    tagId: text('tag_id')
+      .notNull()
+      .references(() => tag.id, { onDelete: 'cascade' }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.infoId, table.tagId] }),
+    index('info_to_tag_info_id_idx').on(table.infoId),
+    index('info_to_tag_tag_id_idx').on(table.tagId),
+  ],
+)
+
+export const studio = pgTable(
+  'studio',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => keywordsNanoId()),
+    name: text('name').notNull().unique(),
+  },
+  (table) => [index('studio_name_idx').on(table.name)],
+)
+
+export const infoToStudio = pgTable(
+  'info_to_studio',
+  {
+    infoId: text('info_id')
+      .notNull()
+      .references(() => info.id, { onDelete: 'cascade' }),
+    studioId: text('studio_id')
+      .notNull()
+      .references(() => studio.id, { onDelete: 'cascade' }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.infoId, table.studioId] }),
+    index('info_to_studio_info_id_idx').on(table.infoId),
+    index('info_to_studio_studio_id_idx').on(table.studioId),
   ],
 )
 
@@ -271,16 +324,6 @@ const artworkSchema = z.object({
   providerId: z.string(),
 })
 
-const studioSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-})
-
-const tagSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-})
-
 const providerSchema = z.object({
   providerType: z.array(z.enum(['SUB', 'DUB', 'H-SUB'])),
   providerName: z.string(),
@@ -289,6 +332,7 @@ const providerSchema = z.object({
 export const insertInfoSchema = createInsertSchema(info, {
   titles: z.array(titleSchema),
   synonyms: z.array(z.string()),
+  externalIds: z.record(z.string(), z.string()),
   airDate: airDateSchema,
   status: z
     .enum(['airing', 'finished', 'cancelled', 'hiatus', 'upcoming'])
@@ -310,8 +354,6 @@ export const insertInfoSchema = createInsertSchema(info, {
   relations: z.array(relationSchema).nullable(),
   characters: z.array(characterSchema),
   artwork: z.array(artworkSchema),
-  studio: z.array(studioSchema),
-  tags: z.array(tagSchema),
 })
 
 export const selectInfoSchema = createSelectSchema(info, {
@@ -338,8 +380,6 @@ export const selectInfoSchema = createSelectSchema(info, {
   relations: z.array(relationSchema).nullable(),
   characters: z.array(characterSchema),
   artwork: z.array(artworkSchema),
-  studio: z.array(studioSchema),
-  tags: z.array(tagSchema),
 })
 
 export const insertGenreSchema = createInsertSchema(genre)
@@ -347,6 +387,18 @@ export const selectGenreSchema = createSelectSchema(genre)
 
 export const insertInfoToGenreSchema = createInsertSchema(infoToGenre)
 export const selectInfoToGenreSchema = createSelectSchema(infoToGenre)
+
+export const insertTagSchema = createInsertSchema(tag)
+export const selectTagSchema = createSelectSchema(tag)
+
+export const insertInfoToTagSchema = createInsertSchema(infoToTag)
+export const selectInfoToTagSchema = createSelectSchema(infoToTag)
+
+export const insertStudioSchema = createInsertSchema(studio)
+export const selectStudioSchema = createSelectSchema(studio)
+
+export const insertInfoToStudioSchema = createInsertSchema(infoToStudio)
+export const selectInfoToStudioSchema = createSelectSchema(infoToStudio)
 
 export const insertEpisodeSchema = createInsertSchema(episode, {
   titles: z.array(titleSchema).nullable(),
@@ -366,6 +418,18 @@ export type GenreInsert = InferInsertModel<typeof genre>
 
 export type InfoToGenreSelect = InferSelectModel<typeof infoToGenre>
 export type InfoToGenreInsert = InferInsertModel<typeof infoToGenre>
+
+export type TagSelect = InferSelectModel<typeof tag>
+export type TagInsert = InferInsertModel<typeof tag>
+
+export type InfoToTagSelect = InferSelectModel<typeof infoToTag>
+export type InfoToTagInsert = InferInsertModel<typeof infoToTag>
+
+export type StudioSelect = InferSelectModel<typeof studio>
+export type StudioInsert = InferInsertModel<typeof studio>
+
+export type InfoToStudioSelect = InferSelectModel<typeof infoToStudio>
+export type InfoToStudioInsert = InferInsertModel<typeof infoToStudio>
 
 export type EpisodeSelect = InferSelectModel<typeof episode>
 export type EpisodeInsert = InferInsertModel<typeof episode>
