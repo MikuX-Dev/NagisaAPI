@@ -546,7 +546,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
             existing.thumbnailImage ?? streamEp.thumbnailImage ?? null,
           preview: existing.preview ?? streamEp.preview ?? null,
           description: existing.description ?? streamEp.description ?? null,
-          rating: existing.rating ?? streamEp.rating ?? null,
+          rating: Math.round(existing.rating ?? streamEp.rating ?? 0) ?? null,
           filler: existing.filler || (streamEp.filler ?? false),
           recap: existing.recap || (streamEp.recap ?? false),
           runtime: existing.runtime ?? streamEp.runtime ?? null,
@@ -563,7 +563,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
 // await Bun.write(
 //   'episodes.json',
 //   JSON.stringify(
-//     await getMap({
+//     await getEpisodes({
 //       type: 'TV',
 //       anidb_id: 16188,
 //       anilist_id: 132052,

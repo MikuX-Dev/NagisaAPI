@@ -12,6 +12,13 @@ import {
   ErrorCodes,
 } from '../helper/response'
 
+import {
+  animeQueue,
+  episodesQueue,
+  JOB_REFRESH_ANIME,
+  JOB_REFRESH_EPISODES,
+} from '../queue'
+
 const CACHE_TTL = 60 * 60
 
 const animeRoutes = new Elysia({ prefix: '/anime' })
@@ -37,8 +44,6 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         }
         const episodes = await getEpisodes(id)
 
-        // Todo: Use workers to update the info in the background if the anime status is not finished or cancelled.
-
         const info = {
           ...anime,
           episodes,
@@ -46,27 +51,41 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
 
         await redis.set(cacheKey, JSON.stringify(info), 'EX', CACHE_TTL)
 
+        const status = anime.status?.toLowerCase()
+        if (status !== 'finished' && status !== 'cancelled') {
+          await animeQueue.add(
+            JOB_REFRESH_ANIME,
+            { infoId: id },
+            {
+              jobId: `anime-refresh-${id}`,
+            },
+          )
+        }
+
+        await episodesQueue.add(
+          JOB_REFRESH_EPISODES,
+          { infoId: id },
+          {
+            jobId: `episodes-refresh-${id}`,
+          },
+        )
+
         return createSuccessResponse(info)
       } catch (error) {
-        // Todo: Move to error handler in future. Instead of repetition.
         if (error instanceof HTTPError) {
           set.status = 500
           return createErrorResponse(
-            'An API fucked us :c',
+            'An external API error occurred.',
             ErrorCodes.EXTERNAL_API_ERROR,
-            {
-              message: error.message,
-            },
+            { message: error.message },
           )
         }
         if (error instanceof Error) {
           set.status = 500
           return createErrorResponse(
-            `We got fucked :(`,
+            'An internal server error occurred.',
             ErrorCodes.SERVER_ERROR,
-            {
-              message: error.message,
-            },
+            { message: error.message },
           )
         }
       }
@@ -108,32 +127,32 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           )
         }
 
-        // Todo: Use workers to update the episodes in the background always
-
         await redis.set(cacheKey, JSON.stringify(episodes), 'EX', CACHE_TTL)
+
+        await episodesQueue.add(
+          JOB_REFRESH_EPISODES,
+          { infoId: id },
+          {
+            jobId: `episodes-refresh-${id}`,
+          },
+        )
 
         return createSuccessResponse(episodes)
       } catch (error) {
-        // Todo: Move to error handler in future. Instead of repetition.
         if (error instanceof HTTPError) {
           set.status = 500
-
           return createErrorResponse(
-            'An API fucked us :c',
+            'An external API error occurred.',
             ErrorCodes.EXTERNAL_API_ERROR,
-            {
-              message: error.message,
-            },
+            { message: error.message },
           )
         }
         if (error instanceof Error) {
           set.status = 500
           return createErrorResponse(
-            `We got fucked :(`,
+            'An internal server error occurred.',
             ErrorCodes.SERVER_ERROR,
-            {
-              message: error.message,
-            },
+            { message: error.message },
           )
         }
       }
