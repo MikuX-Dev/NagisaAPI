@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1769876035950,
-      "tag": "0000_jazzy_fallen_one",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1769876693550,
-      "tag": "0001_fresh_moondragon",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1769876767053,
-      "tag": "0002_nifty_victor_mancha",
+      "when": 1769927046361,
+      "tag": "0000_nifty_starfox",
       "breakpoints": true
     }
   ]
