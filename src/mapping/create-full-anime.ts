@@ -222,6 +222,19 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     },
   }
 
+  const toCamelCase = (str: string) =>
+    str.replace(/_([a-z])/g, (_, char) => char.toUpperCase())
+
+  const transformAnime = (anime: FribbAnime) => {
+    return Object.fromEntries(
+      Object.entries(anime)
+        .filter(([key]) => key !== 'season' && key !== 'type')
+        .map(([key, value]) => [toCamelCase(key), value.toString()]),
+    )
+  }
+
+  const externalIds = transformAnime(anime)
+
   const info: Info = {
     id: nanoid().toString(),
     slug: slug(
@@ -231,6 +244,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     titles: getTitles(),
     synonyms: data.anilist?.synonyms || data.mal?.synonyms || [],
     description: getDescription(),
+    externalIds,
 
     // Images: Prefer high-quality providers, but TVDB is often best for banners/logos
     coverImage:
