@@ -3,7 +3,11 @@ import { HTTPError } from 'ky'
 import { z } from 'zod'
 
 import { redis } from '../database/cache'
-import { getEpisodes, getInfo } from '../database/functions'
+import {
+  getAllAnimeIdAndTitle,
+  getEpisodes,
+  getInfo,
+} from '../database/functions'
 
 import { getRedisKey } from '../helper/redis-keys'
 import {
@@ -165,6 +169,22 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         limit: z.preprocess((val) => Number(val), z.number().optional()),
         offset: z.preprocess((val) => Number(val), z.number().optional()),
         orderBy: z.enum(['asc', 'desc']).default('asc').optional(),
+      }),
+    },
+  )
+  .get(
+    '/all',
+    async ({ query }) => {
+      const { limit, offset } = query
+
+      const allResults = await getAllAnimeIdAndTitle(offset, limit)
+
+      return createSuccessResponse(allResults)
+    },
+    {
+      query: z.object({
+        limit: z.preprocess((val) => Number(val), z.number().optional()),
+        offset: z.preprocess((val) => Number(val), z.number().optional()),
       }),
     },
   )

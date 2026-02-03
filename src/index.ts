@@ -5,7 +5,7 @@ import Elysia from 'elysia'
 import { redis } from './database/cache'
 import { apiRoutes } from './routes/api.routes'
 import { crawlQueue, scheduleDailyUpdate } from './queue'
-import { createSuccessResponse } from './helper/response'
+// import { createSuccessResponse } from './helper/response'
 import { getAnimeCount } from './database/functions'
 await import('./workers/index')
 

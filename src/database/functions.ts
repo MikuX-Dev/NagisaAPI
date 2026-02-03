@@ -603,7 +603,36 @@ export const getAllAnilistIds = async (): Promise<number[]> => {
 
   return result
     .map((row) => (row.anilistId ? parseInt(row.anilistId, 10) : null))
-    .filter((id): id is number => id !== null && !isNaN(id))
+    .filter((id): id is number => id !== null && !Number.isNaN(id))
+}
+
+export const getAllAnimeIdAndTitle = async (
+  offset: number = 0,
+  limit: number = 100,
+): Promise<{
+  data: Array<{ id: string; title: string | null }>
+  total: number
+  offset: number
+  limit: number
+}> => {
+  const [result, countResult] = await Promise.all([
+    db
+      .select({
+        id: info.id,
+        title: sql<string | null>`${info.titles}->0->>'title'`,
+      })
+      .from(info)
+      .limit(limit)
+      .offset(offset),
+    db.select({ count: sql<number>`count(*)` }).from(info),
+  ])
+
+  return {
+    data: result,
+    total: countResult[0]?.count ?? 0,
+    offset,
+    limit,
+  }
 }
 
 export const getAnimeCount = async (): Promise<number> => {
