@@ -12,7 +12,7 @@ const trendingRoutes = new Elysia({ prefix: '/trending' }).get(
     const anilistTrendingIds = await getTrending()
     const trendingAnimes = await getAnimeFromAnilistIds(anilistTrendingIds)
 
-    await trendingQueue.add('trending-update', {
+    await trendingQueue.add('trending-add', {
       ids: trendingAnimes.unavailable,
     })
 

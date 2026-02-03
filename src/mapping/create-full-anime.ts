@@ -83,13 +83,46 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const titleToMap = {
     english:
       data.anilist?.titles.find((title) => title.languageCode === 'english')
-        ?.title ?? '',
+        ?.title ??
+      data.kitsu?.titles.find((title) => title.languageCode === 'english')
+        ?.title ??
+      data.mal?.titles.find((title) => title.languageCode === 'english')
+        ?.title ??
+      data.anidb?.titles.find((title) => title.languageCode === 'english')
+        ?.title ??
+      data.simkl?.titles.find((title) => title.languageCode === 'english')
+        ?.title ??
+      data.tmdb?.titles.find((title) => title.languageCode === 'english')
+        ?.title ??
+      '',
     romaji:
       data.anilist?.titles.find((title) => title.languageCode === 'romaji')
-        ?.title ?? '',
+        ?.title ??
+      data.kitsu?.titles.find((title) => title.languageCode === 'romaji')
+        ?.title ??
+      data.mal?.titles.find((title) => title.languageCode === 'romaji')
+        ?.title ??
+      data.anidb?.titles.find((title) => title.languageCode === 'romaji')
+        ?.title ??
+      data.simkl?.titles.find((title) => title.languageCode === 'romaji')
+        ?.title ??
+      data.tmdb?.titles.find((title) => title.languageCode === 'romaji')
+        ?.title ??
+      '',
     native:
       data.anilist?.titles.find((title) => title.languageCode === 'japanese')
-        ?.title ?? '',
+        ?.title ??
+      data.kitsu?.titles.find((title) => title.languageCode === 'japanese')
+        ?.title ??
+      data.mal?.titles.find((title) => title.languageCode === 'japanese')
+        ?.title ??
+      data.anidb?.titles.find((title) => title.languageCode === 'japanese')
+        ?.title ??
+      data.simkl?.titles.find((title) => title.languageCode === 'japanese')
+        ?.title ??
+      data.tmdb?.titles.find((title) => title.languageCode === 'japanese')
+        ?.title ??
+      '',
   }
 
   let bestNagisaMatch: ProviderSearch | undefined
