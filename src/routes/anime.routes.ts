@@ -116,8 +116,11 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         id: z.string(),
       }),
       query: z.object({
-        anilistRefresh: z.boolean(),
-        fresh: z.boolean()
+        anilistRefresh: z.preprocess(
+          (val) => Boolean(val),
+          z.boolean().optional(),
+        ),
+        fresh: z.preprocess((val) => Boolean(val), z.boolean().optional()),
       }),
     },
   )
