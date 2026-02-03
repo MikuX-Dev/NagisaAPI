@@ -27,6 +27,7 @@ import {
   type EpisodeInsert,
   type InfoInsert,
 } from './schema'
+import { jaroWinkler } from '../helper/jaro-winkler'
 
 type KeywordTable = typeof genre | typeof tag | typeof studio
 type JunctionTable = typeof infoToGenre | typeof infoToTag | typeof infoToStudio
@@ -348,6 +349,8 @@ export interface SearchOptions {
   offset?: number
   orderBy?: 'createdAt' | 'updatedAt' | 'rating' | 'totalEpisodes'
   orderDirection?: 'asc' | 'desc'
+  fuzzyThreshold?: number
+  useFuzzy?: boolean
 }
 
 export async function search(options: SearchOptions = {}) {
@@ -376,11 +379,13 @@ export async function search(options: SearchOptions = {}) {
     offset = 0,
     orderBy = 'createdAt',
     orderDirection = 'desc',
+    fuzzyThreshold = 0.7,
+    useFuzzy = true,
   } = options
 
   const conditions = []
 
-  if (query) {
+  if (query && !useFuzzy) {
     conditions.push(
       or(
         sql`${info.titles}::text ILIKE ${`%${query}%`}`,
@@ -555,6 +560,8 @@ export async function search(options: SearchOptions = {}) {
           .where(and(...conditions))
       : db.select().from(info)
 
+  const fetchLimit = useFuzzy && query ? limit * 10 : limit
+
   const orderColumn =
     orderBy === 'createdAt'
       ? info.createdAt
@@ -569,7 +576,7 @@ export async function search(options: SearchOptions = {}) {
   // @ts-expect-error meh
   query_builder = query_builder
     .orderBy(orderDirection === 'asc' ? asc(orderColumn) : desc(orderColumn))
-    .limit(limit)
+    .limit(fetchLimit)
     .offset(offset)
 
   const results = await query_builder
@@ -591,8 +598,55 @@ export async function search(options: SearchOptions = {}) {
     }),
   )
 
+  if (useFuzzy && query) {
+    const queryLower = query.toLowerCase()
+    
+    const resultsWithScores = resultsWithKeywords.map((item) => {
+      let maxScore = 0
+
+      if (item.titles && Array.isArray(item.titles)) {
+        for (const titleObj of item.titles) {
+          if (titleObj.title && typeof titleObj.title === 'string') {
+            const score = jaroWinkler(queryLower, titleObj.title.toLowerCase())
+            maxScore = Math.max(maxScore, score)
+          }
+        }
+      }
+
+      if (item.slug) {
+        const slugScore = jaroWinkler(queryLower, item.slug.toLowerCase())
+        maxScore = Math.max(maxScore, slugScore)
+      }
+
+      if (item.description) {
+        const descWords = item.description.toLowerCase().split(/\s+/)
+        const queryWords = queryLower.split(/\s+/)
+        
+        for (const queryWord of queryWords) {
+          for (const descWord of descWords) {
+            const score = jaroWinkler(queryWord, descWord)
+            maxScore = Math.max(maxScore, score)
+          }
+        }
+      }
+
+      return {
+        ...item,
+        fuzzyScore: maxScore,
+      }
+    })
+
+    const filteredResults = resultsWithScores
+      .filter((item) => item.fuzzyScore >= fuzzyThreshold)
+      .sort((a, b) => b.fuzzyScore - a.fuzzyScore)
+      .slice(0, limit)
+
+    return filteredResults
+  }
+
   return resultsWithKeywords
 }
+
 
 export const getAllAnilistIds = async (): Promise<number[]> => {
   const result = await db
