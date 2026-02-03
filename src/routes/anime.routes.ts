@@ -66,6 +66,17 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           )
         }
 
+        // Remap because anilist didnt return all the info :c
+        if (anime.slug === '' || anime.slug === null || !anime.slug) {
+          await animeQueue.add(
+            JOB_REFRESH_ANIME,
+            { infoId: id },
+            {
+              jobId: `anime-refresh-${id}`,
+            },
+          )
+        }
+
         await episodesQueue.add(
           JOB_REFRESH_EPISODES,
           { infoId: id },
