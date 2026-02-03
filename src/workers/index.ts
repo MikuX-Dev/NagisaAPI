@@ -1,6 +1,7 @@
 import { animeWorker } from './anime.worker'
 import { episodesWorker } from './episodes.worker'
-import { animeCrawler, shutdownCrawler } from './crawler.worker'
+import { shutdownCrawler } from './crawler.worker'
+import { trendingWorker } from './trending.worker'
 
 console.log('🚀 All workers started')
 
@@ -16,6 +17,7 @@ const handleShutdown = async (signal: string) => {
     await Promise.all([
       animeWorker.close(),
       episodesWorker.close(),
+      trendingWorker.close(),
       shutdownCrawler(),
     ])
 

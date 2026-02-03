@@ -639,6 +639,42 @@ export const getAnimeCount = async (): Promise<number> => {
   return await db.$count(info)
 }
 
+export const getAnimeFromAnilistIds = async (
+  anilistIds: number[],
+): Promise<{
+  found: Array<typeof info.$inferSelect>
+  unavailable: number[]
+}> => {
+  if (anilistIds.length === 0) {
+    return { found: [], unavailable: [] }
+  }
+
+  const anilistIdStrings = anilistIds.map(String)
+
+  const result = await db
+    .select()
+    .from(info)
+    .where(
+      sql`${info.externalIds}->>'anilistId' IN (${sql.join(
+        anilistIdStrings.map((id) => sql`${id}`),
+        sql`, `,
+      )})`,
+    )
+
+  const foundAnilistIds = result
+    .map((anime) => {
+      const anilistId = (anime.externalIds as any)?.anilistId
+      return anilistId ? Number.parseInt(anilistId, 10) : null
+    })
+    .filter((id): id is number => id !== null && !Number.isNaN(id))
+
+  const unavailable = anilistIds.filter((id) => !foundAnilistIds.includes(id))
+
+  return {
+    found: result,
+    unavailable,
+  }
+}
 // await Bun.write(
 //   'db-info.json',
 //   JSON.stringify(
