@@ -28,9 +28,10 @@ const CACHE_TTL = 60 * 60
 const animeRoutes = new Elysia({ prefix: '/anime' })
   .get(
     '/:id',
-    async ({ params, set }) => {
+    async ({ params, query, set }) => {
       try {
         const { id } = params
+        const { anilistRefresh } = query
         const cacheKey = getRedisKey('anime', id)
 
         const cached = await redis.get(cacheKey)
@@ -67,7 +68,12 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         }
 
         // Remap because anilist didnt return all the info :c
-        if (anime.slug === '' || anime.slug === null || !anime.slug) {
+        if (
+          anime.slug === '' ||
+          anime.slug === null ||
+          !anime.slug ||
+          anilistRefresh
+        ) {
           await animeQueue.add(
             JOB_REFRESH_ANIME,
             { infoId: id },
@@ -108,6 +114,9 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
     {
       params: z.object({
         id: z.string(),
+      }),
+      query: z.object({
+        anilistRefresh: z.boolean(),
       }),
     },
   )
