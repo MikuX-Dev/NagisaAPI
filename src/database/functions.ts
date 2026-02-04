@@ -106,6 +106,13 @@ export async function addInfo(
       createdAt: now.toString(),
       updatedAt: now.toString(),
     })
+    .onConflictDoUpdate({
+      target: info.id,
+      set: {
+        externalIds: data.externalIds, 
+        updatedAt: Date.now().toString(),
+      },
+    })
     .returning()
 
   await upsertAndLink(
