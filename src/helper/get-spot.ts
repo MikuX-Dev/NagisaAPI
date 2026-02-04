@@ -2,9 +2,9 @@ import ky from 'ky'
 import { getAnimeFromAnilistIds } from '../database/functions'
 
 export const SPOT_QUERY = `
-query($perPage: Int, $sort: [MediaSort]) {
+query($perPage: Int, $sort: [MediaSort], $type: MediaType, $isAdult: Boolean = false) {
   Page(perPage: $perPage) {
-    media(sort: $sort) {
+    media(sort: $sort, isAdult: $isAdult, type: $type) {
       id
     }
   }
@@ -19,6 +19,7 @@ export const getTrending = async () => {
           query: SPOT_QUERY,
           variables: {
             perPage: 50,
+            type: 'ANIME',
             sort: ['TRENDING_DESC', 'POPULARITY_DESC'],
           },
         },

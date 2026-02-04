@@ -10,7 +10,7 @@ import {
   lte,
   or,
   sql,
-  getTableColumns
+  getTableColumns,
 } from 'drizzle-orm'
 
 import { keywordsNanoId, nanoid } from '../id-gen/nanoid'
@@ -422,29 +422,42 @@ export async function search(options: SearchOptions = {}) {
   if (format) conditions.push(eq(info.format, format))
 
   if (airDateStartYear) {
-    conditions.push(sql`(${info.airDate}->>'start'->>'year')::int >= ${airDateStartYear}`)
+    conditions.push(
+      sql`(${info.airDate}->>'start'->>'year')::int >= ${airDateStartYear}`,
+    )
   }
   if (airDateEndYear) {
-    conditions.push(sql`(${info.airDate}->>'end'->>'year')::int <= ${airDateEndYear}`)
+    conditions.push(
+      sql`(${info.airDate}->>'end'->>'year')::int <= ${airDateEndYear}`,
+    )
   }
   if (id) conditions.push(eq(info.id, id))
 
   if (rating?.min !== undefined) conditions.push(gte(info.rating, rating.min))
   if (rating?.max !== undefined) conditions.push(lte(info.rating, rating.max))
 
-  if (subCount?.min !== undefined) conditions.push(gte(info.subCount, subCount.min))
-  if (subCount?.max !== undefined) conditions.push(lte(info.subCount, subCount.max))
+  if (subCount?.min !== undefined)
+    conditions.push(gte(info.subCount, subCount.min))
+  if (subCount?.max !== undefined)
+    conditions.push(lte(info.subCount, subCount.max))
 
-  if (dubCount?.min !== undefined) conditions.push(gte(info.dubCount, dubCount.min))
-  if (dubCount?.max !== undefined) conditions.push(lte(info.dubCount, dubCount.max))
+  if (dubCount?.min !== undefined)
+    conditions.push(gte(info.dubCount, dubCount.min))
+  if (dubCount?.max !== undefined)
+    conditions.push(lte(info.dubCount, dubCount.max))
 
-  if (totalEpisodes?.min !== undefined) conditions.push(gte(info.totalEpisodes, totalEpisodes.min))
-  if (totalEpisodes?.max !== undefined) conditions.push(lte(info.totalEpisodes, totalEpisodes.max))
+  if (totalEpisodes?.min !== undefined)
+    conditions.push(gte(info.totalEpisodes, totalEpisodes.min))
+  if (totalEpisodes?.max !== undefined)
+    conditions.push(lte(info.totalEpisodes, totalEpisodes.max))
 
-  if (currentEpisode?.min !== undefined) conditions.push(gte(info.currentEpisode, currentEpisode.min))
-  if (currentEpisode?.max !== undefined) conditions.push(lte(info.currentEpisode, currentEpisode.max))
+  if (currentEpisode?.min !== undefined)
+    conditions.push(gte(info.currentEpisode, currentEpisode.min))
+  if (currentEpisode?.max !== undefined)
+    conditions.push(lte(info.currentEpisode, currentEpisode.max))
 
-  if (countryOfOrigin) conditions.push(eq(info.countryOfOrigin, countryOfOrigin))
+  if (countryOfOrigin)
+    conditions.push(eq(info.countryOfOrigin, countryOfOrigin))
   if (slug) conditions.push(eq(info.slug, slug))
   if (color) conditions.push(eq(info.color, color))
 
@@ -487,7 +500,10 @@ export async function search(options: SearchOptions = {}) {
   }
 
   if (genreNames && genreNames.length > 0) {
-    const genreRecords = await db.select().from(genre).where(inArray(genre.name, genreNames))
+    const genreRecords = await db
+      .select()
+      .from(genre)
+      .where(inArray(genre.name, genreNames))
     const genreIds = genreRecords.map((g) => g.id)
     if (genreIds.length > 0) {
       conditions.push(
@@ -501,7 +517,10 @@ export async function search(options: SearchOptions = {}) {
   }
 
   if (tagNames && tagNames.length > 0) {
-    const tagRecords = await db.select().from(tag).where(inArray(tag.name, tagNames))
+    const tagRecords = await db
+      .select()
+      .from(tag)
+      .where(inArray(tag.name, tagNames))
     const tagIds = tagRecords.map((t) => t.id)
     if (tagIds.length > 0) {
       conditions.push(
@@ -536,14 +555,14 @@ export async function search(options: SearchOptions = {}) {
     orderBy === 'createdAt'
       ? info.createdAt
       : orderBy === 'updatedAt'
-      ? info.updatedAt
-      : orderBy === 'rating'
-      ? info.rating
-      : orderBy === 'totalEpisodes'
-      ? info.totalEpisodes
-      : orderBy === 'relevance' && query
-      ? similarityScoreSql 
-      : info.createdAt
+        ? info.updatedAt
+        : orderBy === 'rating'
+          ? info.rating
+          : orderBy === 'totalEpisodes'
+            ? info.totalEpisodes
+            : orderBy === 'relevance' && query
+              ? similarityScoreSql
+              : info.createdAt
 
   // @ts-expect-error TS might complain about complex order types
   query_builder = query_builder
