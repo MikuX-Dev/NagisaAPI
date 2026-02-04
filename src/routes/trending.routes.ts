@@ -16,7 +16,14 @@ const trendingRoutes = new Elysia({ prefix: '/trending' }).get(
       ids: trendingAnimes.unavailable,
     })
 
-    return createSuccessResponse(trendingAnimes.found)
+    return createSuccessResponse({
+      trending: trendingAnimes.found,
+      unavilable: trendingAnimes.unavailable,
+      idsFromDatabase: trendingAnimes.found.map(
+        (trending) => (trending.externalIds as { anilistId: string }).anilistId,
+      ),
+      idsFromAnilist: anilistTrendingIds,
+    })
   },
   {
     query: z.object({
