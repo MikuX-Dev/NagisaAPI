@@ -10,6 +10,7 @@ import {
   lte,
   or,
   sql,
+  getTableColumns
 } from 'drizzle-orm'
 
 import { keywordsNanoId, nanoid } from '../id-gen/nanoid'
@@ -416,80 +417,36 @@ export async function search(options: SearchOptions = {}) {
     }
   }
 
-  if (status) {
-    conditions.push(eq(info.status, status))
-  }
-
-  if (season) {
-    conditions.push(eq(info.season, season))
-  }
-
-  if (format) {
-    conditions.push(eq(info.format, format))
-  }
+  if (status) conditions.push(eq(info.status, status))
+  if (season) conditions.push(eq(info.season, season))
+  if (format) conditions.push(eq(info.format, format))
 
   if (airDateStartYear) {
-    conditions.push(
-      sql`(${info.airDate}->>'start'->>'year')::int >= ${airDateStartYear}`,
-    )
+    conditions.push(sql`(${info.airDate}->>'start'->>'year')::int >= ${airDateStartYear}`)
   }
-
   if (airDateEndYear) {
-    conditions.push(
-      sql`(${info.airDate}->>'end'->>'year')::int <= ${airDateEndYear}`,
-    )
+    conditions.push(sql`(${info.airDate}->>'end'->>'year')::int <= ${airDateEndYear}`)
   }
+  if (id) conditions.push(eq(info.id, id))
 
-  if (id) {
-    conditions.push(eq(info.id, id))
-  }
+  if (rating?.min !== undefined) conditions.push(gte(info.rating, rating.min))
+  if (rating?.max !== undefined) conditions.push(lte(info.rating, rating.max))
 
-  if (rating?.min !== undefined) {
-    conditions.push(gte(info.rating, rating.min))
-  }
-  if (rating?.max !== undefined) {
-    conditions.push(lte(info.rating, rating.max))
-  }
+  if (subCount?.min !== undefined) conditions.push(gte(info.subCount, subCount.min))
+  if (subCount?.max !== undefined) conditions.push(lte(info.subCount, subCount.max))
 
-  if (subCount?.min !== undefined) {
-    conditions.push(gte(info.subCount, subCount.min))
-  }
-  if (subCount?.max !== undefined) {
-    conditions.push(lte(info.subCount, subCount.max))
-  }
+  if (dubCount?.min !== undefined) conditions.push(gte(info.dubCount, dubCount.min))
+  if (dubCount?.max !== undefined) conditions.push(lte(info.dubCount, dubCount.max))
 
-  if (dubCount?.min !== undefined) {
-    conditions.push(gte(info.dubCount, dubCount.min))
-  }
-  if (dubCount?.max !== undefined) {
-    conditions.push(lte(info.dubCount, dubCount.max))
-  }
+  if (totalEpisodes?.min !== undefined) conditions.push(gte(info.totalEpisodes, totalEpisodes.min))
+  if (totalEpisodes?.max !== undefined) conditions.push(lte(info.totalEpisodes, totalEpisodes.max))
 
-  if (totalEpisodes?.min !== undefined) {
-    conditions.push(gte(info.totalEpisodes, totalEpisodes.min))
-  }
-  if (totalEpisodes?.max !== undefined) {
-    conditions.push(lte(info.totalEpisodes, totalEpisodes.max))
-  }
+  if (currentEpisode?.min !== undefined) conditions.push(gte(info.currentEpisode, currentEpisode.min))
+  if (currentEpisode?.max !== undefined) conditions.push(lte(info.currentEpisode, currentEpisode.max))
 
-  if (currentEpisode?.min !== undefined) {
-    conditions.push(gte(info.currentEpisode, currentEpisode.min))
-  }
-  if (currentEpisode?.max !== undefined) {
-    conditions.push(lte(info.currentEpisode, currentEpisode.max))
-  }
-
-  if (countryOfOrigin) {
-    conditions.push(eq(info.countryOfOrigin, countryOfOrigin))
-  }
-
-  if (slug) {
-    conditions.push(eq(info.slug, slug))
-  }
-
-  if (color) {
-    conditions.push(eq(info.color, color))
-  }
+  if (countryOfOrigin) conditions.push(eq(info.countryOfOrigin, countryOfOrigin))
+  if (slug) conditions.push(eq(info.slug, slug))
+  if (color) conditions.push(eq(info.color, color))
 
   if (characterName) {
     conditions.push(
@@ -530,12 +487,8 @@ export async function search(options: SearchOptions = {}) {
   }
 
   if (genreNames && genreNames.length > 0) {
-    const genreRecords = await db
-      .select()
-      .from(genre)
-      .where(inArray(genre.name, genreNames))
+    const genreRecords = await db.select().from(genre).where(inArray(genre.name, genreNames))
     const genreIds = genreRecords.map((g) => g.id)
-
     if (genreIds.length > 0) {
       conditions.push(
         sql`EXISTS (
@@ -548,12 +501,8 @@ export async function search(options: SearchOptions = {}) {
   }
 
   if (tagNames && tagNames.length > 0) {
-    const tagRecords = await db
-      .select()
-      .from(tag)
-      .where(inArray(tag.name, tagNames))
+    const tagRecords = await db.select().from(tag).where(inArray(tag.name, tagNames))
     const tagIds = tagRecords.map((t) => t.id)
-
     if (tagIds.length > 0) {
       conditions.push(
         sql`EXISTS (
@@ -564,32 +513,39 @@ export async function search(options: SearchOptions = {}) {
       )
     }
   }
+  const similarityScoreSql = query
+    ? sql<number>`(
+        SELECT MAX(jaro_winkler(LOWER(title_obj->>'title'), LOWER(${query})))
+        FROM jsonb_array_elements(${info.titles}) AS title_obj
+      )`
+    : sql<number>`0`
 
-  let query_builder =
-    conditions.length > 0
-      ? db
-          .select()
-          .from(info)
-          .where(and(...conditions))
-      : db.select().from(info)
+  let query_builder = db
+    .select({
+      ...getTableColumns(info),
+      similarityScore: similarityScoreSql,
+    })
+    .from(info)
+
+  if (conditions.length > 0) {
+    // @ts-expect-error Drizzle sometimes complains about spread conditions
+    query_builder = query_builder.where(and(...conditions))
+  }
 
   const orderColumn =
     orderBy === 'createdAt'
       ? info.createdAt
       : orderBy === 'updatedAt'
-        ? info.updatedAt
-        : orderBy === 'rating'
-          ? info.rating
-          : orderBy === 'totalEpisodes'
-            ? info.totalEpisodes
-            : orderBy === 'relevance' && query
-              ? sql`(
-                  SELECT MAX(jaro_winkler(LOWER(title_obj->>'title'), LOWER(${query})))
-                  FROM jsonb_array_elements(${info.titles}) AS title_obj
-                )`
-              : info.createdAt
+      ? info.updatedAt
+      : orderBy === 'rating'
+      ? info.rating
+      : orderBy === 'totalEpisodes'
+      ? info.totalEpisodes
+      : orderBy === 'relevance' && query
+      ? similarityScoreSql 
+      : info.createdAt
 
-  // @ts-expect-error meh
+  // @ts-expect-error TS might complain about complex order types
   query_builder = query_builder
     .orderBy(orderDirection === 'asc' ? asc(orderColumn) : desc(orderColumn))
     .limit(limit)
@@ -605,30 +561,17 @@ export async function search(options: SearchOptions = {}) {
         getLinkedKeywords(studio, infoToStudio, infoItem.id),
       ])
 
-      let similarityScore: number | undefined
-      if (query) {
-        const titleScores = await db.execute(
-          sql`
-            SELECT MAX(jaro_winkler(LOWER(title_obj->>'title'), LOWER(${query}))) as score
-            FROM jsonb_array_elements(${infoItem.titles}) AS title_obj
-          `,
-        )
-        similarityScore = (titleScores.rows[0]?.score as number) || 0
-      }
-
       return {
         ...infoItem,
         genres,
         tags,
         studios,
-        ...(query && { similarityScore }),
       }
     }),
   )
 
   return resultsWithKeywords
 }
-
 export const getAllAnilistIds = async (): Promise<number[]> => {
   const result = await db
     .select({
