@@ -1,12 +1,13 @@
-import { Worker, Job } from 'bullmq'
+import { Worker, type Job } from 'bullmq'
 import { redis as redisConnection } from '../database/cache'
 import { QUEUE_TRENDING, type TrendingAddPayload } from '../queue'
 import { getSingleFribbAnime } from '../crawler/fribb'
 import { getEpisodes, getMap } from '../mapping/create-full-anime'
 import { addInfo, addEpisodes } from '../database/functions'
 import { sleep } from 'bun'
+import type { FribbAnime } from '../types/provider'
 
-async function processSingleAnime(anime: any) {
+async function processSingleAnime(anime: FribbAnime) {
   try {
     const mapData = await getMap(anime)
 
@@ -38,7 +39,7 @@ async function processSingleAnime(anime: any) {
     const fetchedEpisodes = await getEpisodes(anime)
 
     if (fetchedEpisodes && fetchedEpisodes.length > 0) {
-      const episodesToInsert = fetchedEpisodes.map((ep: any) => {
+      const episodesToInsert = fetchedEpisodes.map((ep) => {
         const { id, createdAt, updatedAt, ...epRest } = ep
         return {
           ...epRest,

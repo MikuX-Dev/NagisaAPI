@@ -1,5 +1,4 @@
 import ky from 'ky'
-import { getAnimeFromAnilistIds } from '../database/functions'
 
 export const SPOT_QUERY = `
 query($perPage: Int, $sort: [MediaSort], $type: MediaType, $isAdult: Boolean = false) {
@@ -27,7 +26,7 @@ export const getTrending = async () => {
       .json<{ data: { Page: { media: { id: number }[] } } }>()
 
     return res.data.Page.media.map((grr) => grr.id)
-  } catch (error) {
+  } catch (_error) {
     return []
   }
 }
@@ -47,7 +46,7 @@ export const getPopular = async () => {
       .json<{ data: { Page: { media: { id: number }[] } } }>()
 
     return res.data.Page.media.map((grr) => grr.id)
-  } catch (error) {
+  } catch (_error) {
     return []
   }
 }
@@ -67,7 +66,7 @@ export const getBestScore = async () => {
       .json<{ data: { Page: { media: { id: number }[] } } }>()
 
     return res.data.Page.media.map((grr) => grr.id)
-  } catch (error) {
+  } catch (_error) {
     return []
   }
 }

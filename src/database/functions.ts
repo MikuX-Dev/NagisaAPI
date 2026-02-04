@@ -660,7 +660,7 @@ export const getAnimeFromAnilistIds = async (
 
   const foundAnilistIds = result
     .map((anime) => {
-      const anilistId = (anime.externalIds as any)?.anilistId
+      const anilistId = (anime.externalIds as { anilistId?: string })?.anilistId
       return anilistId ? Number.parseInt(anilistId, 10) : null
     })
     .filter((id): id is number => id !== null && !Number.isNaN(id))

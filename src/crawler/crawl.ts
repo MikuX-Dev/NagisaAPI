@@ -1,5 +1,6 @@
 import { addInfo, addEpisodes, getAllAnilistIds } from '../database/functions'
 import { getMap, getEpisodes } from '../mapping/create-full-anime'
+import type { FribbAnime } from '../types/provider'
 import { getFribbList } from './fribb'
 
 const PROGRESS_FILE = 'crawl-progress.json'
@@ -29,7 +30,6 @@ export const startCrawl = async () => {
   let startIndex = 0
   const file = Bun.file(PROGRESS_FILE)
 
-  const totalToProcess = list.length - startIndex
   const crawlStartTime = Date.now()
 
   if (await file.exists()) {
@@ -41,7 +41,7 @@ export const startCrawl = async () => {
           `🔄 Resuming crawl from index ${startIndex} (Last processed: ${state.lastAnilistId})`,
         )
       }
-    } catch (err) {
+    } catch (_err) {
       console.error('⚠️ Error reading progress file, starting from scratch.')
     }
   }
@@ -172,7 +172,7 @@ export const startCrawl = async () => {
   }
 }
 
-async function processSingleAnime(anime: any) {
+async function processSingleAnime(anime: FribbAnime) {
   try {
     const mapData = await getMap(anime)
 
@@ -204,7 +204,7 @@ async function processSingleAnime(anime: any) {
     const fetchedEpisodes = await getEpisodes(anime)
 
     if (fetchedEpisodes && fetchedEpisodes.length > 0) {
-      const episodesToInsert = fetchedEpisodes.map((ep: any) => {
+      const episodesToInsert = fetchedEpisodes.map((ep) => {
         const { id, createdAt, updatedAt, ...epRest } = ep
         return {
           ...epRest,
@@ -256,6 +256,8 @@ export const checkForUpdates = async () => {
     console.log(
       `[Update ${i + 1}/${missingAnime.length}] Syncing: ${anime?.anilist_id}`,
     )
+
+    if (!anime) continue
 
     try {
       await processSingleAnime(anime)
