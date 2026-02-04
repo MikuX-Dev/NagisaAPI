@@ -657,7 +657,7 @@ export const getAnimeFromAnilistIds = async (
     )
 
   const animeMap = new Map<number, typeof info.$inferSelect>()
-  
+
   result.forEach((anime) => {
     const id = (anime.externalIds as { anilistId: string })?.anilistId
     if (id) {
