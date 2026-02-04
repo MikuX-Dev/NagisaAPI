@@ -348,6 +348,7 @@ export interface SearchOptions {
   offset?: number
   orderBy?: 'createdAt' | 'updatedAt' | 'rating' | 'totalEpisodes'
   orderDirection?: 'asc' | 'desc'
+  fuzzyThreshold?: number
 }
 
 export async function search(options: SearchOptions = {}) {
@@ -376,6 +377,7 @@ export async function search(options: SearchOptions = {}) {
     offset = 0,
     orderBy = 'createdAt',
     orderDirection = 'desc',
+    fuzzyThreshold = 0.8, // Jaro-Winkler similarity threshold
   } = options
 
   const conditions = []
@@ -386,6 +388,11 @@ export async function search(options: SearchOptions = {}) {
         sql`${info.titles}::text ILIKE ${`%${query}%`}`,
         like(info.slug, `%${query}%`),
         like(info.description, `%${query}%`),
+        sql`EXISTS (
+          SELECT 1 FROM jsonb_array_elements_text(${info.titles}) AS title
+          WHERE jaro_winkler(LOWER(title), LOWER(${query})) >= ${fuzzyThreshold}
+        )`,
+        sql`jaro_winkler(${info.slug}, ${query}) >= ${fuzzyThreshold}`,
       ),
     )
   }
@@ -486,10 +493,16 @@ export async function search(options: SearchOptions = {}) {
 
   if (characterName) {
     conditions.push(
-      sql`EXISTS (
-        SELECT 1 FROM jsonb_array_elements(${info.characters}) AS character
-        WHERE character->>'name' ILIKE ${`%${characterName}%`}
-      )`,
+      or(
+        sql`EXISTS (
+          SELECT 1 FROM jsonb_array_elements(${info.characters}) AS character
+          WHERE character->>'name' ILIKE ${`%${characterName}%`}
+        )`,
+        sql`EXISTS (
+          SELECT 1 FROM jsonb_array_elements(${info.characters}) AS character
+          WHERE jaro_winkler(LOWER(character->>'name'), LOWER(${characterName})) >= ${fuzzyThreshold}
+        )`,
+      ),
     )
   }
 
@@ -497,7 +510,12 @@ export async function search(options: SearchOptions = {}) {
     const studioRecords = await db
       .select()
       .from(studio)
-      .where(like(studio.name, `%${studioName}%`))
+      .where(
+        or(
+          like(studio.name, `%${studioName}%`),
+          sql`jaro_winkler(LOWER(${studio.name}), LOWER(${studioName})) >= ${fuzzyThreshold}`,
+        ),
+      )
     const studioIds = studioRecords.map((s) => s.id)
 
     if (studioIds.length > 0) {
@@ -564,7 +582,12 @@ export async function search(options: SearchOptions = {}) {
           ? info.rating
           : orderBy === 'totalEpisodes'
             ? info.totalEpisodes
-            : info.createdAt
+            : orderBy === 'relevance' && query
+              ? sql`(
+                  SELECT MAX(jaro_winkler(LOWER(title), LOWER(${query})))
+                  FROM jsonb_array_elements_text(${info.titles}) AS title
+                )`
+              : info.createdAt
 
   // @ts-expect-error meh
   query_builder = query_builder
@@ -582,18 +605,29 @@ export async function search(options: SearchOptions = {}) {
         getLinkedKeywords(studio, infoToStudio, infoItem.id),
       ])
 
+      let similarityScore: number | undefined
+      if (query) {
+        const titleScores = await db.execute(
+          sql`
+            SELECT MAX(jaro_winkler(LOWER(title), LOWER(${query}))) as score
+            FROM jsonb_array_elements_text(${infoItem.titles}) AS title
+          `,
+        )
+        similarityScore = (titleScores.rows[0]?.score as number) || 0
+      }
+
       return {
         ...infoItem,
         genres,
         tags,
         studios,
+        ...(query && { similarityScore }),
       }
     }),
   )
 
   return resultsWithKeywords
 }
-
 export const getAllAnilistIds = async (): Promise<number[]> => {
   const result = await db
     .select({

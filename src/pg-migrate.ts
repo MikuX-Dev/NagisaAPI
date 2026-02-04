@@ -1,29 +1,29 @@
-import { Client } from 'pg';
+import { Client } from 'pg'
 
 interface MigrationConfig {
-  databaseUrl: string;
+  databaseUrl: string
 }
 
 class JaroWinklerMigration {
-  private client: Client;
+  private client: Client
 
   constructor(config: MigrationConfig) {
     this.client = new Client({
-      connectionString: config.databaseUrl
-    });
+      connectionString: config.databaseUrl,
+    })
   }
 
   async connect(): Promise<void> {
     try {
-      await this.client.connect();
+      await this.client.connect()
     } catch (error) {
-      console.error('✗ Failed to connect to PostgreSQL:', error);
-      throw error;
+      console.error('✗ Failed to connect to PostgreSQL:', error)
+      throw error
     }
   }
 
   async disconnect(): Promise<void> {
-    await this.client.end();
+    await this.client.end()
   }
 
   async checkPlPythonInstalled(): Promise<boolean> {
@@ -31,21 +31,23 @@ class JaroWinklerMigration {
       const result = await this.client.query(`
         SELECT 1 FROM pg_available_extensions 
         WHERE name = 'plpython3u'
-      `);
-      return result.rowCount !== null && result.rowCount > 0;
+      `)
+      return result.rowCount !== null && result.rowCount > 0
     } catch (error) {
-      console.error('✗ Error checking PL/Python availability:', error);
-      return false;
+      console.error('✗ Error checking PL/Python availability:', error)
+      return false
     }
   }
 
   async enablePlPython(): Promise<void> {
     try {
-      await this.client.query('CREATE EXTENSION IF NOT EXISTS plpython3u');
+      await this.client.query('CREATE EXTENSION IF NOT EXISTS plpython3u')
     } catch (error) {
-      console.error('✗ Failed to enable plpython3u extension:', error);
-      console.error('  Make sure you have superuser privileges and PL/Python is installed');
-      throw error;
+      console.error('✗ Failed to enable plpython3u extension:', error)
+      console.error(
+        '  Make sure you have superuser privileges and PL/Python is installed',
+      )
+      throw error
     }
   }
 
@@ -58,12 +60,12 @@ class JaroWinklerMigration {
           except ImportError:
             plpy.error("jellyfish not installed")
         $$
-      `);
-      return true;
+      `)
+      return true
     } catch (_error) {
-      console.error('✗ jellyfish is not installed');
-      console.error('  Run: sudo pip3 install jellyfish');
-      return false;
+      console.error('✗ jellyfish is not installed')
+      console.error('  Run: sudo pip3 install jellyfish')
+      return false
     }
   }
 
@@ -82,12 +84,12 @@ class JaroWinklerMigration {
             # Calculate Jaro-Winkler similarity
             return jellyfish.jaro_winkler_similarity(text1, text2)
         $$ LANGUAGE plpython3u IMMUTABLE;
-      `;
+      `
 
-      await this.client.query(createFunctionSQL);
+      await this.client.query(createFunctionSQL)
     } catch (error) {
-      console.error('✗ Failed to create jaro_winkler function:', error);
-      throw error;
+      console.error('✗ Failed to create jaro_winkler function:', error)
+      throw error
     }
   }
 
@@ -99,12 +101,12 @@ class JaroWinklerMigration {
         AS $$
             SELECT jaro_winkler(text1, text2) >= threshold;
         $$ LANGUAGE SQL IMMUTABLE;
-      `;
+      `
 
-      await this.client.query(helperFunctionSQL);
+      await this.client.query(helperFunctionSQL)
     } catch (error) {
-      console.error('✗ Failed to create jaro_winkler_match function:', error);
-      throw error;
+      console.error('✗ Failed to create jaro_winkler_match function:', error)
+      throw error
     }
   }
 
@@ -113,15 +115,14 @@ class JaroWinklerMigration {
       await this.client.query(`
         COMMENT ON FUNCTION jaro_winkler(TEXT, TEXT) IS 
         'Calculates Jaro-Winkler similarity between two strings using Python jellyfish library. Returns a value between 0.0 (no similarity) and 1.0 (exact match).';
-      `);
+      `)
 
       await this.client.query(`
         COMMENT ON FUNCTION jaro_winkler_match(TEXT, TEXT, FLOAT) IS 
         'Returns TRUE if Jaro-Winkler similarity between two strings exceeds the threshold (default 0.8).';
-      `);
-
+      `)
     } catch (error) {
-      console.error('✗ Failed to add comments:', error);
+      console.error('✗ Failed to add comments:', error)
     }
   }
 
@@ -130,19 +131,18 @@ class JaroWinklerMigration {
       const testCases = [
         { text1: 'hello', text2: 'hallo', expected: '~0.93' },
         { text1: 'PostgreSQL', text2: 'Postgres', expected: '~0.94' },
-        { text1: 'MARTHA', text2: 'MARHTA', expected: '~0.96' }
-      ];
+        { text1: 'MARTHA', text2: 'MARHTA', expected: '~0.96' },
+      ]
 
       for (const test of testCases) {
         const _result = await this.client.query(
           'SELECT jaro_winkler($1, $2) as similarity',
-          [test.text1, test.text2]
-        );
+          [test.text1, test.text2],
+        )
       }
-
     } catch (error) {
-      console.error('✗ Function tests failed:', error);
-      throw error;
+      console.error('✗ Function tests failed:', error)
+      throw error
     }
   }
 
@@ -154,11 +154,10 @@ class JaroWinklerMigration {
           migration_name VARCHAR(255) NOT NULL UNIQUE,
           applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-      `);
-
+      `)
     } catch (error) {
-      console.error('✗ Failed to create migrations table:', error);
-      throw error;
+      console.error('✗ Failed to create migrations table:', error)
+      throw error
     }
   }
 
@@ -166,11 +165,11 @@ class JaroWinklerMigration {
     try {
       await this.client.query(
         'INSERT INTO schema_migrations (migration_name) VALUES ($1) ON CONFLICT (migration_name) DO NOTHING',
-        [migrationName]
-      );
+        [migrationName],
+      )
     } catch (error) {
-      console.error('✗ Failed to record migration:', error);
-      throw error;
+      console.error('✗ Failed to record migration:', error)
+      throw error
     }
   }
 
@@ -178,69 +177,75 @@ class JaroWinklerMigration {
     try {
       const result = await this.client.query(
         'SELECT 1 FROM schema_migrations WHERE migration_name = $1',
-        [migrationName]
-      );
-      return result.rowCount !== null && result.rowCount > 0;
+        [migrationName],
+      )
+      return result.rowCount !== null && result.rowCount > 0
     } catch (_error) {
       // If table doesn't exist, migration hasn't been applied
-      return false;
+      return false
     }
   }
 
   async run(): Promise<void> {
-    const migrationName = 'add_jaro_winkler_function_v1';
+    const migrationName = 'add_jaro_winkler_function_v1'
 
     try {
-      await this.connect();
-      await this.createMigrationTable();
+      await this.connect()
+      await this.createMigrationTable()
 
-      const alreadyApplied = await this.isMigrationApplied(migrationName);
+      const alreadyApplied = await this.isMigrationApplied(migrationName)
       if (alreadyApplied) {
-        return;
+        return
       }
 
-      const plPythonAvailable = await this.checkPlPythonInstalled();
+      const plPythonAvailable = await this.checkPlPythonInstalled()
       if (!plPythonAvailable) {
-        throw new Error('PL/Python extension not available. Please install it first.');
+        throw new Error(
+          'PL/Python extension not available. Please install it first.',
+        )
       }
 
-      await this.enablePlPython();
+      await this.enablePlPython()
 
-      const jellyfishInstalled = await this.checkJellyfishInstalled();
+      const jellyfishInstalled = await this.checkJellyfishInstalled()
       if (!jellyfishInstalled) {
-        throw new Error('jellyfish library not installed. Please install it first.');
+        throw new Error(
+          'jellyfish library not installed. Please install it first.',
+        )
       }
 
-      await this.createJaroWinklerFunction();
-      await this.createHelperFunction();
-      await this.addComments();
-      await this.testFunction();
-      await this.recordMigration(migrationName);
-
+      await this.createJaroWinklerFunction()
+      await this.createHelperFunction()
+      await this.addComments()
+      await this.testFunction()
+      await this.recordMigration(migrationName)
     } catch (error) {
-      throw error;
+      throw error
     } finally {
-      await this.disconnect();
+      await this.disconnect()
     }
   }
 
   async rollback(): Promise<void> {
-    const migrationName = 'add_jaro_winkler_function_v1';
+    const migrationName = 'add_jaro_winkler_function_v1'
 
     try {
-      await this.connect();
+      await this.connect()
 
-      await this.client.query('DROP FUNCTION IF EXISTS jaro_winkler_match(TEXT, TEXT, FLOAT)');
-      await this.client.query('DROP FUNCTION IF EXISTS jaro_winkler(TEXT, TEXT)');
+      await this.client.query(
+        'DROP FUNCTION IF EXISTS jaro_winkler_match(TEXT, TEXT, FLOAT)',
+      )
+      await this.client.query(
+        'DROP FUNCTION IF EXISTS jaro_winkler(TEXT, TEXT)',
+      )
       await this.client.query(
         'DELETE FROM schema_migrations WHERE migration_name = $1',
-        [migrationName]
-      );
-
+        [migrationName],
+      )
     } catch (error) {
-      throw error;
+      throw error
     } finally {
-      await this.disconnect();
+      await this.disconnect()
     }
   }
 }
@@ -248,28 +253,30 @@ class JaroWinklerMigration {
 // Main execution
 async function main() {
   const config: MigrationConfig = {
-    databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/your_database'
-  };
+    databaseUrl:
+      process.env.DATABASE_URL ||
+      'postgresql://postgres:password@localhost:5432/your_database',
+  }
 
-  const migration = new JaroWinklerMigration(config);
+  const migration = new JaroWinklerMigration(config)
 
-  const command = process.argv[2];
+  const command = process.argv[2]
 
   try {
     if (command === 'rollback') {
-      await migration.rollback();
+      await migration.rollback()
     } else {
-      await migration.run();
+      await migration.run()
     }
-    process.exit(0);
+    process.exit(0)
   } catch (error) {
-    console.error('Migration error:', error);
-    process.exit(1);
+    console.error('Migration error:', error)
+    process.exit(1)
   }
 }
 
 if (require.main === module) {
-  main();
+  main()
 }
 
-export { JaroWinklerMigration, type MigrationConfig };
+export { JaroWinklerMigration, type MigrationConfig }
