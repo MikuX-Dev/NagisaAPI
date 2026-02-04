@@ -377,7 +377,7 @@ export async function search(options: SearchOptions = {}) {
     offset = 0,
     orderBy = 'createdAt',
     orderDirection = 'desc',
-    fuzzyThreshold = 0.8, // Jaro-Winkler similarity threshold
+    fuzzyThreshold = 0.8,
   } = options
 
   const conditions = []
@@ -389,8 +389,8 @@ export async function search(options: SearchOptions = {}) {
         like(info.slug, `%${query}%`),
         like(info.description, `%${query}%`),
         sql`EXISTS (
-          SELECT 1 FROM jsonb_array_elements_text(${info.titles}) AS title
-          WHERE jaro_winkler(LOWER(title), LOWER(${query})) >= ${fuzzyThreshold}
+          SELECT 1 FROM jsonb_array_elements(${info.titles}) AS title_obj
+          WHERE jaro_winkler(LOWER(title_obj->>'title'), LOWER(${query})) >= ${fuzzyThreshold}
         )`,
         sql`jaro_winkler(${info.slug}, ${query}) >= ${fuzzyThreshold}`,
       ),
@@ -584,8 +584,8 @@ export async function search(options: SearchOptions = {}) {
             ? info.totalEpisodes
             : orderBy === 'relevance' && query
               ? sql`(
-                  SELECT MAX(jaro_winkler(LOWER(title), LOWER(${query})))
-                  FROM jsonb_array_elements_text(${info.titles}) AS title
+                  SELECT MAX(jaro_winkler(LOWER(title_obj->>'title'), LOWER(${query})))
+                  FROM jsonb_array_elements(${info.titles}) AS title_obj
                 )`
               : info.createdAt
 
@@ -609,8 +609,8 @@ export async function search(options: SearchOptions = {}) {
       if (query) {
         const titleScores = await db.execute(
           sql`
-            SELECT MAX(jaro_winkler(LOWER(title), LOWER(${query}))) as score
-            FROM jsonb_array_elements_text(${infoItem.titles}) AS title
+            SELECT MAX(jaro_winkler(LOWER(title_obj->>'title'), LOWER(${query}))) as score
+            FROM jsonb_array_elements(${infoItem.titles}) AS title_obj
           `,
         )
         similarityScore = (titleScores.rows[0]?.score as number) || 0
@@ -628,6 +628,7 @@ export async function search(options: SearchOptions = {}) {
 
   return resultsWithKeywords
 }
+
 export const getAllAnilistIds = async (): Promise<number[]> => {
   const result = await db
     .select({
