@@ -642,9 +642,7 @@ export const getAnimeFromAnilistIds = async (
   found: Array<typeof info.$inferSelect>
   unavailable: number[]
 }> => {
-  if (anilistIds.length === 0) {
-    return { found: [], unavailable: [] }
-  }
+  if (anilistIds.length === 0) return { found: [], unavailable: [] }
 
   const anilistIdStrings = anilistIds.map(String)
 
@@ -658,20 +656,36 @@ export const getAnimeFromAnilistIds = async (
       )})`,
     )
 
-  const foundAnilistIds = result
-    .map((anime) => {
-      const anilistId = (anime.externalIds as { anilistId?: string })?.anilistId
-      return anilistId ? Number.parseInt(anilistId, 10) : null
-    })
-    .filter((id): id is number => id !== null && !Number.isNaN(id))
+  const animeMap = new Map<number, typeof info.$inferSelect>()
+  
+  result.forEach((anime) => {
+    const id = (anime.externalIds as { anilistId: string })?.anilistId
+    if (id) {
+      const numericId = Number.parseInt(id, 10)
+      if (!animeMap.has(numericId)) {
+        animeMap.set(numericId, anime)
+      }
+    }
+  })
 
-  const unavailable = anilistIds.filter((id) => !foundAnilistIds.includes(id))
+  const found: Array<typeof info.$inferSelect> = []
+  const unavailable: number[] = []
+
+  for (const id of anilistIds) {
+    const match = animeMap.get(id)
+    if (match) {
+      found.push(match)
+    } else {
+      unavailable.push(id)
+    }
+  }
 
   return {
-    found: result,
+    found,
     unavailable,
   }
 }
+
 // await Bun.write(
 //   'db-info.json',
 //   JSON.stringify(
