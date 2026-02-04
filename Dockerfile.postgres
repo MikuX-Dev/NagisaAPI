@@ -1,0 +1,10 @@
+FROM postgres:17-alpine
+
+RUN apk add --no-cache \
+    postgresql17-plpython3 \
+    python3 \
+    py3-pip
+
+RUN pip3 install --break-system-packages jellyfish
+
+RUN echo "CREATE EXTENSION IF NOT EXISTS plpython3u;" > /docker-entrypoint-initdb.d/01-enable-plpython.sql
