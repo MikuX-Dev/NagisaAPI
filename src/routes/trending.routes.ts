@@ -1,28 +1,24 @@
 import Elysia from 'elysia'
-
-import { getTrending } from '../helper/get-spot'
-import { getAnimeFromAnilistIds } from '../database/functions'
-import { trendingQueue } from '../queue'
 import z from 'zod'
+
+import { getAnimeFromAnilistIds } from '../database/functions'
+import { getTrending } from '../helper/get-spot'
+// import { trendingQueue } from '../queue'
 import { createSuccessResponse } from '../helper/response'
 
 const trendingRoutes = new Elysia({ prefix: '/trending' }).get(
   '/',
   async ({ query }) => {
-    const anilistTrendingIds = await getTrending()
+    const anilistTrendingIds = await getTrending({
+      limit: query.limit,
+      offset: query.offset,
+    })
     const trendingAnimes = await getAnimeFromAnilistIds(anilistTrendingIds)
 
-    await trendingQueue.add('trending-add', {
-      ids: trendingAnimes.unavailable,
-    })
+    // Worker removed.
 
-    // return createSuccessResponse({
-    //   trending: trendingAnimes.found,
-    //   unavilable: trendingAnimes.unavailable,
-    //   idsFromDatabase: trendingAnimes.found.map(
-    //     (trending) => (trending.externalIds as { anilistId: string }).anilistId,
-    //   ),
-    //   idsFromAnilist: anilistTrendingIds,
+    // await trendingQueue.add('trending-add', {
+    //   ids: trendingAnimes.unavailable,
     // })
 
     return createSuccessResponse(trendingAnimes.found)
