@@ -309,7 +309,7 @@ class TheMovieDB extends MetaBase {
 
     const episodesResponse = await this.fetchEpsodes(fribbAnime)
     const episodes: ProviderEpisode[] =
-      episodesResponse?.episodes.map((episode) => {
+      episodesResponse?.episodes.map((episode, idx) => {
         const langs = ['en', 'ja', 'es', 'de', 'ru']
 
         const titles = langs
@@ -346,7 +346,7 @@ class TheMovieDB extends MetaBase {
           ago: formatDistance(new Date(episode.air_date), new Date(), {
             addSuffix: true,
           }),
-          number: episode.episode_number,
+          number: idx + 1,
           createdAt: Date.now(),
           updatedAt: new Date(episode.air_date).getTime(),
         }
