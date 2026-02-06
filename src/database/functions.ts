@@ -727,16 +727,15 @@ export const getAnimeFromAnilistIds = async (
   }
 }
 
-export async function nukeAllAnimeEpisodes(): Promise<number> {
-  const result = await db.delete(episode)
-  
-  const deletedCount = result.rowCount ?? 0
-  
-  console.log(`💥 Nuked ${deletedCount} anime episodes from existence`)
-  
-  return deletedCount
-}
+// export async function nukeAllAnimeEpisodes(): Promise<number> {
+//   const result = await db.delete(episode)
 
+//   const deletedCount = result.rowCount ?? 0
+
+//   console.log(`💥 Nuked ${deletedCount} anime episodes from existence`)
+
+//   return deletedCount
+// }
 
 // await Bun.write(
 //   'db-info.json',

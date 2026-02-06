@@ -8,7 +8,6 @@ import {
   getAnimeCount,
   getEpisodes,
   getInfo,
-  nukeAllAnimeEpisodes,
 } from '../database/functions'
 
 import { getRedisKey } from '../helper/redis-keys'
@@ -131,7 +130,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
     async ({ params, query, set }) => {
       try {
         const { id } = params
-        const { limit, offset, orderBy, airedOnly } = query
+        const { limit, offset, orderBy, airedOnly, fresh } = query
 
         const cacheKey = getRedisKey(
           'episodes',
@@ -139,7 +138,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         )
 
         const cached = await redis.get(cacheKey)
-        if (cached) {
+        if (cached && !fresh) {
           return createSuccessResponse(JSON.parse(cached))
         }
 
@@ -208,6 +207,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           (val) => Boolean(val),
           z.boolean().optional().default(true),
         ),
+        fresh: z.preprocess((val) => Boolean(val), z.boolean().optional()),
       }),
     },
   )
@@ -231,21 +231,6 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
     const count = await getAnimeCount()
 
     return createSuccessResponse({ count })
-  }).get('/nuke-episodes', async ({ query, set }) => {
-    const { pw } = query;
-
-    if(pw !== "svznisgay12304321") {
-      set.status = 403;
-      return createErrorResponse("no", ErrorCodes.FORBIDDEN);
-    }
-
-    const nuke = await nukeAllAnimeEpisodes();
-
-    return createSuccessResponse(nuke);
-  }, {
-    query: z.object({
-      pw: z.string()
-    })
   })
 
 export { animeRoutes }
