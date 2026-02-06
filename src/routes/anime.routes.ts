@@ -134,7 +134,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
 
         const cacheKey = getRedisKey(
           'episodes',
-          `${id}:${limit ?? 'all'}:${offset ?? 0}:${orderBy ?? 'asc'}`,
+          `${id}:${limit ?? 'all'}:${offset ?? 0}:${orderBy ?? 'asc'}:${airedOnly ? 'true' : 'false'}`,
         )
 
         const cached = await redis.get(cacheKey)
@@ -148,16 +148,6 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           orderBy,
         })
 
-        if (episodes.length <= 0) {
-          set.status = 404
-          return createErrorResponse(
-            `Could not find episodes for id: \`${id}\`.`,
-            ErrorCodes.NOT_FOUND,
-          )
-        }
-
-        await redis.set(cacheKey, JSON.stringify(episodes), 'EX', CACHE_TTL)
-
         await episodesQueue.add(
           JOB_REFRESH_EPISODES,
           { infoId: id },
@@ -165,6 +155,8 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
             jobId: `episodes-refresh-${id}`,
           },
         )
+
+        await redis.set(cacheKey, JSON.stringify(episodes), 'EX', CACHE_TTL)
 
         if (airedOnly) {
           const airedOnlyEpisodes = episodes.filter(
