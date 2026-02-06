@@ -109,7 +109,7 @@ export async function addInfo(
     .onConflictDoUpdate({
       target: info.id,
       set: {
-        externalIds: data.externalIds, 
+        externalIds: data.externalIds,
         updatedAt: Date.now().toString(),
       },
     })
@@ -646,7 +646,19 @@ export const getAnimeCount = async (): Promise<number> => {
 export const getAnimeFromAnilistIds = async (
   anilistIds: number[],
 ): Promise<{
-  found: Array<typeof info.$inferSelect>
+  found: Array<
+    Omit<
+      typeof info.$inferSelect,
+      | 'externalIds'
+      | 'synonyms'
+      | 'relations'
+      | 'countryOfOrigin'
+      | 'characters'
+      | 'artwork'
+      | 'createdAt'
+      | 'updatedAt'
+    >
+  >
   unavailable: number[]
 }> => {
   if (anilistIds.length === 0) return { found: [], unavailable: [] }
@@ -654,7 +666,27 @@ export const getAnimeFromAnilistIds = async (
   const anilistIdStrings = anilistIds.map(String)
 
   const result = await db
-    .select()
+    .select({
+      slug: info.slug,
+      id: info.id,
+      titles: info.titles,
+      coverImage: info.coverImage,
+      bannerImage: info.bannerImage,
+      logoImage: info.logoImage,
+      airDate: info.airDate,
+      description: info.description,
+      color: info.color,
+      status: info.status,
+      format: info.format,
+      season: info.season,
+      currentEpisode: info.currentEpisode,
+      subCount: info.subCount,
+      dubCount: info.dubCount,
+      ageRating: info.ageRating,
+      totalEpisodes: info.totalEpisodes,
+      rating: info.rating,
+      externalIds: info.externalIds,
+    })
     .from(info)
     .where(
       sql`${info.externalIds}->>'anilistId' IN (${sql.join(
@@ -663,7 +695,7 @@ export const getAnimeFromAnilistIds = async (
       )})`,
     )
 
-  const animeMap = new Map<number, typeof info.$inferSelect>()
+  const animeMap = new Map<number, (typeof result)[0]>()
 
   result.forEach((anime) => {
     const id = (anime.externalIds as { anilistId: string })?.anilistId
@@ -675,13 +707,14 @@ export const getAnimeFromAnilistIds = async (
     }
   })
 
-  const found: Array<typeof info.$inferSelect> = []
+  const found = []
   const unavailable: number[] = []
 
   for (const id of anilistIds) {
     const match = animeMap.get(id)
     if (match) {
-      found.push(match)
+      const { externalIds, ...cleanMatch } = match
+      found.push(cleanMatch)
     } else {
       unavailable.push(id)
     }
@@ -692,7 +725,6 @@ export const getAnimeFromAnilistIds = async (
     unavailable,
   }
 }
-
 // await Bun.write(
 //   'db-info.json',
 //   JSON.stringify(
