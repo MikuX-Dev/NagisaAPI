@@ -15,7 +15,10 @@ interface PaginationParams {
   offset?: number
 }
 
-export const getTrending = async ({ limit = 50, offset = 0 }: PaginationParams = {}) => {
+export const getTrending = async ({
+  limit = 50,
+  offset = 0,
+}: PaginationParams = {}) => {
   try {
     // Convert offset/limit to page/perPage
     const page = Math.floor(offset / limit) + 1
@@ -41,7 +44,10 @@ export const getTrending = async ({ limit = 50, offset = 0 }: PaginationParams =
   }
 }
 
-export const getPopular = async ({ limit = 50, offset = 0 }: PaginationParams = {}) => {
+export const getPopular = async ({
+  limit = 50,
+  offset = 0,
+}: PaginationParams = {}) => {
   try {
     const page = Math.floor(offset / limit) + 1
     const perPage = limit
@@ -65,7 +71,10 @@ export const getPopular = async ({ limit = 50, offset = 0 }: PaginationParams = 
   }
 }
 
-export const getBestScore = async ({ limit = 50, offset = 0 }: PaginationParams = {}) => {
+export const getBestScore = async ({
+  limit = 50,
+  offset = 0,
+}: PaginationParams = {}) => {
   try {
     const page = Math.floor(offset / limit) + 1
     const perPage = limit
