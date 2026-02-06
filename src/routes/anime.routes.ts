@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { redis } from '../database/cache'
 import {
   getAllAnimeIdAndTitle,
+  getAnimeCount,
   getEpisodes,
   getInfo,
 } from '../database/functions'
@@ -212,5 +213,10 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
       }),
     },
   )
+  .get('/count', async () => {
+    const count = await getAnimeCount()
+
+    return createSuccessResponse({ count })
+  })
 
 export { animeRoutes }
