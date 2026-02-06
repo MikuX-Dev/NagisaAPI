@@ -383,7 +383,7 @@ export async function search(options: SearchOptions = {}) {
     tagNames,
     limit = 50,
     offset = 0,
-    orderBy = 'createdAt',
+    orderBy = 'relevance',
     orderDirection = 'desc',
     fuzzyThreshold = 0.8,
   } = options
@@ -539,6 +539,7 @@ export async function search(options: SearchOptions = {}) {
       )
     }
   }
+
   const similarityScoreSql = query
     ? sql<number>`(
         SELECT MAX(jaro_winkler(LOWER(title_obj->>'title'), LOWER(${query})))
@@ -548,7 +549,24 @@ export async function search(options: SearchOptions = {}) {
 
   let query_builder = db
     .select({
-      ...getTableColumns(info),
+      slug: info.slug,
+      id: info.id,
+      titles: info.titles,
+      coverImage: info.coverImage,
+      bannerImage: info.bannerImage,
+      logoImage: info.logoImage,
+      airDate: info.airDate,
+      description: info.description,
+      color: info.color,
+      status: info.status,
+      format: info.format,
+      season: info.season,
+      currentEpisode: info.currentEpisode,
+      subCount: info.subCount,
+      dubCount: info.dubCount,
+      ageRating: info.ageRating,
+      totalEpisodes: info.totalEpisodes,
+      rating: info.rating,
       similarityScore: similarityScoreSql,
     })
     .from(info)
@@ -567,9 +585,9 @@ export async function search(options: SearchOptions = {}) {
           ? info.rating
           : orderBy === 'totalEpisodes'
             ? info.totalEpisodes
-            : orderBy === 'relevance' && query
+            : orderBy === 'relevance'
               ? similarityScoreSql
-              : info.createdAt
+              : similarityScoreSql
 
   // @ts-expect-error TS might complain about complex order types
   query_builder = query_builder
@@ -579,24 +597,7 @@ export async function search(options: SearchOptions = {}) {
 
   const results = await query_builder
 
-  const resultsWithKeywords = await Promise.all(
-    results.map(async (infoItem) => {
-      const [genres, tags, studios] = await Promise.all([
-        getLinkedKeywords(genre, infoToGenre, infoItem.id),
-        getLinkedKeywords(tag, infoToTag, infoItem.id),
-        getLinkedKeywords(studio, infoToStudio, infoItem.id),
-      ])
-
-      return {
-        ...infoItem,
-        genres,
-        tags,
-        studios,
-      }
-    }),
-  )
-
-  return resultsWithKeywords
+  return results
 }
 export const getAllAnilistIds = async (): Promise<number[]> => {
   const result = await db
