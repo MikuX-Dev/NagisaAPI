@@ -10,7 +10,6 @@ import {
   lte,
   or,
   sql,
-  getTableColumns,
 } from 'drizzle-orm'
 
 import { keywordsNanoId, nanoid } from '../id-gen/nanoid'
