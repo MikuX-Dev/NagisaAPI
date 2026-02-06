@@ -271,6 +271,7 @@ export async function updateEpisodes(
 
   return updatedEpisode
 }
+
 export async function getEpisodes(
   infoId: string,
   options?: {
@@ -725,6 +726,18 @@ export const getAnimeFromAnilistIds = async (
     unavailable,
   }
 }
+
+export async function nukeAllAnimeEpisodes(): Promise<number> {
+  const result = await db.delete(episode)
+  
+  const deletedCount = result.rowCount ?? 0
+  
+  console.log(`💥 Nuked ${deletedCount} anime episodes from existence`)
+  
+  return deletedCount
+}
+
+
 // await Bun.write(
 //   'db-info.json',
 //   JSON.stringify(

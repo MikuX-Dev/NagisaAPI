@@ -8,6 +8,7 @@ import {
   getAnimeCount,
   getEpisodes,
   getInfo,
+  nukeAllAnimeEpisodes,
 } from '../database/functions'
 
 import { getRedisKey } from '../helper/redis-keys'
@@ -130,7 +131,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
     async ({ params, query, set }) => {
       try {
         const { id } = params
-        const { limit, offset, orderBy } = query
+        const { limit, offset, orderBy, airedOnly } = query
 
         const cacheKey = getRedisKey(
           'episodes',
@@ -166,6 +167,15 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           },
         )
 
+        if (airedOnly) {
+          const airedOnlyEpisodes = episodes.filter(
+            (episode) =>
+              episode.ago && !episode.ago.toLowerCase().includes('in'),
+          )
+
+          return createSuccessResponse(airedOnlyEpisodes)
+        }
+
         return createSuccessResponse(episodes)
       } catch (error) {
         if (error instanceof HTTPError) {
@@ -194,6 +204,10 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         limit: z.preprocess((val) => Number(val), z.number().optional()),
         offset: z.preprocess((val) => Number(val), z.number().optional()),
         orderBy: z.enum(['asc', 'desc']).default('asc').optional(),
+        airedOnly: z.preprocess(
+          (val) => Boolean(val),
+          z.boolean().optional().default(true),
+        ),
       }),
     },
   )
@@ -217,6 +231,21 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
     const count = await getAnimeCount()
 
     return createSuccessResponse({ count })
+  }).get('/nuke-episodes', async ({ query, set }) => {
+    const { pw } = query;
+
+    if(pw !== "svznisgay12304321") {
+      set.status = 403;
+      return createErrorResponse("no", ErrorCodes.FORBIDDEN);
+    }
+
+    const nuke = await nukeAllAnimeEpisodes();
+
+    return createSuccessResponse(nuke);
+  }, {
+    query: z.object({
+      pw: z.string()
+    })
   })
 
 export { animeRoutes }
