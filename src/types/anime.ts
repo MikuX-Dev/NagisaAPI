@@ -145,3 +145,32 @@ export interface Episode {
   createdAt: number
   updatedAt: number
 }
+
+export interface DatabaseEpisode {
+  id: string
+  infoId: string
+  titles:
+    | {
+        languageCode: string
+        title: string | null
+      }[]
+    | null
+  thumbnailImage: string | null
+  preview: string | null
+  description: string | null
+  number: number
+  rating: number | null
+  filler: boolean
+  recap: boolean
+  runtime: number | null
+  ago: string | null
+  providers: {
+    providerType: Array<'SUB' | 'DUB' | 'H-SUB'>
+    providerName: string
+    id?: string
+    episodeId?: string
+  }[]
+  createdAt: string
+  updatedAt: string
+}
+;[]

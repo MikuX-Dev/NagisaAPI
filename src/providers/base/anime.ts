@@ -1,3 +1,4 @@
+import type { Source } from '@crysoline/lib'
 import type {
   CrysolineProviderEpisode,
   ProviderInfo,
@@ -14,4 +15,9 @@ export abstract class AnimeBase extends Provider {
     id: string,
   ): Promise<CrysolineProviderEpisode[] | undefined>
   abstract search(query: string): Promise<ProviderSearch[] | undefined>
+  abstract getSources(
+    id: string,
+    episodeId: string,
+    subType: string,
+  ): Promise<Source<unknown>>
 }

@@ -93,6 +93,16 @@ class Miyako extends AnimeBase {
       return undefined
     }
   }
+
+  async getSources(id: string, episodeId: string, type: string) {
+    const sources = await this.provider.sources({
+      id,
+      episodeId,
+      subType: type,
+    })
+
+    return sources
+  }
 }
 
 export default Miyako

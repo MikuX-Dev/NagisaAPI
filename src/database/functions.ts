@@ -27,6 +27,7 @@ import {
   type EpisodeInsert,
   type InfoInsert,
 } from './schema'
+import type { DatabaseEpisode } from '../types/anime'
 
 type KeywordTable = typeof genre | typeof tag | typeof studio
 type JunctionTable = typeof infoToGenre | typeof infoToTag | typeof infoToStudio
@@ -278,8 +279,9 @@ export async function getEpisodes(
     limit?: number
     offset?: number
     orderBy?: 'asc' | 'desc'
+    full?: boolean
   },
-) {
+): Promise<DatabaseEpisode[]> {
   const limit = options?.limit ?? 100
   const offset = options?.offset ?? 0
   const orderBy = options?.orderBy ?? 'asc'
@@ -291,6 +293,10 @@ export async function getEpisodes(
     .orderBy(orderBy === 'asc' ? asc(episode.number) : desc(episode.number))
     .limit(limit)
     .offset(offset)
+
+  if (options?.full) {
+    return episodes
+  }
 
   return episodes.map((ep) => ({
     ...ep,

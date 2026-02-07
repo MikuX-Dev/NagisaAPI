@@ -18,6 +18,12 @@ import {
   ErrorCodes,
 } from '../helper/response'
 
+import Miyako from '../providers/anime/miyako-anizone'
+import Nagisa from '../providers/anime/nagisa-animekai'
+import Toki from '../providers/anime/toki-zencloud'
+import type { AnimeBase } from '../providers/base/anime'
+
+
 import {
   animeQueue,
   episodesQueue,
@@ -201,6 +207,71 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           z.boolean().optional().default(true),
         ),
         fresh: z.preprocess((val) => Boolean(val), z.boolean().optional()),
+      }),
+    },
+  )
+  .get(
+    '/:id/episodes/:number',
+    async ({ params, query, set }) => {
+      const providers = [new Nagisa(), new Miyako(), new Toki()] as AnimeBase[]
+
+      const { server, subType } = query
+      const { id, number } = params
+
+      const currentProvider = providers.find(
+        (provider) => provider.name.toLowerCase() === server.toLowerCase(),
+      )
+
+      if (!currentProvider?.name) {
+        set.status = 400
+        return createErrorResponse(
+          'The server you provided does not exist.',
+          ErrorCodes.BAD_REQUEST,
+        )
+      }
+
+      const episodes = await getEpisodes(id, { full: true })
+      const currentEpisode = episodes.find(
+        (episode) => episode.number === number,
+      )
+
+      if (!currentEpisode?.id) {
+        set.status = 404
+        return createErrorResponse(
+          `Could not find episode for the number: \`${number}\``,
+          ErrorCodes.NOT_FOUND,
+        )
+      }
+
+      const serverEpisode = currentEpisode.providers.find(
+        (provider) =>
+          provider.providerName.toLowerCase() === server.toLowerCase(),
+      )
+
+      if (!serverEpisode?.id || !serverEpisode?.episodeId) {
+        set.status = 404
+        return createErrorResponse(
+          `Could not find episode for the number: \`${number}\``,
+          ErrorCodes.NOT_FOUND,
+        )
+      }
+
+      const sources = await currentProvider.getSources(
+        serverEpisode.id,
+        serverEpisode.episodeId,
+        subType,
+      )
+
+      return sources
+    },
+    {
+      params: z.object({
+        id: z.string(),
+        number: z.preprocess((val) => Number(val), z.number().optional()),
+      }),
+      query: z.object({
+        subType: z.enum(['sub', 'dub', 'h-sub']).default('sub'),
+        server: z.string().default('toki'),
       }),
     },
   )
