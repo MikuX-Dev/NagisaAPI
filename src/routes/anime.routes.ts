@@ -247,17 +247,17 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           provider.providerName.toLowerCase() === server.toLowerCase(),
       )
 
-      if (!serverEpisode?.id || !serverEpisode?.episodeId) {
-        set.status = 404
-        return createErrorResponse(
-          `Could not find episode for the number: \`${number}\``,
-          ErrorCodes.NOT_FOUND,
-        )
-      }
+      // if (!serverEpisode?.id || !serverEpisode?.episodeId) {
+      //   set.status = 404
+      //   return createErrorResponse(
+      //     `Could not find episode for the number: \`${number}\``,
+      //     ErrorCodes.NOT_FOUND,
+      //   )
+      // }
 
       const sources = await currentProvider.getSources(
-        serverEpisode.id,
-        serverEpisode.episodeId,
+        serverEpisode?.id as string,
+        serverEpisode?.episodeId as string,
         subType,
       )
 
