@@ -229,20 +229,20 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         )
       }
 
-      const episodes = await getEpisodes(id, { full: true })
+      const episodes = await getEpisodes(id, { full: true, limit: 10_000 })
       const currentEpisode = episodes.find(
-        (episode) => episode.number === number,
+        (episode) => Number(episode.number) === Number(number),
       )
 
-      if (!currentEpisode?.id) {
-        set.status = 404
-        return createErrorResponse(
-          `Could not find episode for the number: \`${number}\``,
-          ErrorCodes.NOT_FOUND,
-        )
-      }
+      // if (!currentEpisode?.id) {
+      //   set.status = 404
+      //   return createErrorResponse(
+      //     `Could not find episode for the number: \`${number}\``,
+      //     ErrorCodes.NOT_FOUND,
+      //   )
+      // }
 
-      const serverEpisode = currentEpisode.providers.find(
+      const serverEpisode = currentEpisode?.providers.find(
         (provider) =>
           provider.providerName.toLowerCase() === server.toLowerCase(),
       )
