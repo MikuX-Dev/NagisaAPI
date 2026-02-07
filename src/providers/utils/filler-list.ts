@@ -1,18 +1,28 @@
 import ky from 'ky'
 
-export const getFillerList = async () => {
-  const res = await ky
-    .get(
-      'https://raw.githubusercontent.com/ThaUnknown/filler-scrape/refs/heads/main/filler-readable.json',
-    )
-    .json<Record<string, number[]>>()
+const URL =
+  'https://cdn.jsdelivr.net/gh/ThaUnknown/filler-scrape@main/filler-readable.json'
 
-  return res
+let fillerMap = new Map<string, Set<number>>()
+let lastUpdated = 0
+const ONE_HOUR = 60 * 60 * 1000
+
+async function ensureFresh() {
+  if (Date.now() - lastUpdated < ONE_HOUR) return
+
+  const json = await ky.get(URL).json<Record<string, number[]>>()
+  const next = new Map<string, Set<number>>()
+
+  for (const [id, eps] of Object.entries(json)) {
+    next.set(id, new Set(eps))
+  }
+
+  fillerMap = next
+  lastUpdated = Date.now()
 }
 
-export const getAnimeFiller = async (anilistId: string) => {
-  const list = await getFillerList()
-  const fillers = list[anilistId.toString()]
-
-  return fillers ?? []
+export async function getFillerEpisodes(anilistId: string) {
+  await ensureFresh()
+  const episodes = fillerMap.get(anilistId)
+  return episodes ? Array.from(episodes) : []
 }

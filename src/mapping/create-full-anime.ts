@@ -42,7 +42,7 @@ import { FindBestMatchByTitles } from './helpers/find-best-match'
 import { cleanTitle } from './helpers/sanitize-title'
 import Miyako from '../providers/anime/miyako-anizone'
 import Toki from '../providers/anime/toki-zencloud'
-import { getAnimeFiller } from '../providers/utils/filler-list'
+import { getFillerEpisodes } from '../providers/utils/filler-list'
 
 export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const providers = {
@@ -379,7 +379,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   let fillers: number[] = []
 
   if (anime.anilist_id) {
-    fillers = await getAnimeFiller(anime.anilist_id.toString())
+    fillers = await getFillerEpisodes(anime.anilist_id.toString())
   }
 
   const streamingProviders = [
@@ -496,7 +496,6 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
 
   allMetaEpisodes.forEach((metaEp) => {
     if (metaEp.number === undefined) return
-    const fillerEp = fillers.includes(metaEp.number)
 
     const existing = episodeMap.get(metaEp.number)
     if (!existing) {
@@ -508,7 +507,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
         description: metaEp.description ?? null,
         number: metaEp.number,
         rating: metaEp.rating ?? null,
-        filler: fillerEp,
+        filler: false,
         recap: metaEp.recap ?? false,
         runtime: metaEp.runtime ?? null,
         ago: metaEp.ago ?? null,
@@ -525,7 +524,6 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
         preview: existing.preview ?? metaEp.preview ?? null,
         description: existing.description ?? metaEp.description ?? null,
         rating: existing.rating ?? metaEp.rating ?? null,
-        filler: fillerEp,
         recap: existing.recap || (metaEp.recap ?? false),
         runtime: existing.runtime ?? metaEp.runtime ?? null,
         ago: existing.ago ?? metaEp.ago ?? null,
@@ -537,7 +535,6 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   streamingData.forEach((providerData, providerName) => {
     providerData.episodes.forEach((streamEp) => {
       if (streamEp.number === undefined) return
-      const fillerEp = fillers.includes(streamEp.number)
 
       const existing = episodeMap.get(streamEp.number)
 
@@ -556,7 +553,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
           description: streamEp.description ?? null,
           number: streamEp.number,
           rating: streamEp.rating ?? null,
-          filler: fillerEp,
+          filler: false,
           recap: streamEp.recap ?? null,
           runtime: streamEp.runtime ?? null,
           ago: null,
@@ -601,7 +598,6 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
           preview: existing.preview ?? streamEp.preview ?? null,
           description: existing.description ?? streamEp.description ?? null,
           rating: Math.round(existing.rating ?? streamEp.rating ?? 0) ?? null,
-          filler: fillerEp,
           recap: existing.recap || (streamEp.recap ?? false),
           runtime: existing.runtime ?? streamEp.runtime ?? null,
           providers,
@@ -611,7 +607,15 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
     })
   })
 
-  return Array.from(episodeMap.values()).sort((a, b) => a.number - b.number)
+  const results = Array.from(episodeMap.values()).sort(
+    (a, b) => a.number - b.number,
+  )
+
+  for (const episode of results) {
+    episode.filler = fillers.includes(episode.number)
+  }
+
+  return results
 }
 
 // await Bun.write(
