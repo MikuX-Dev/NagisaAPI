@@ -50,7 +50,8 @@ class Toki extends AnimeBase {
 
     const episodes: CrysolineProviderEpisode[] = res.data
       .map((r) => ({
-        id: r.access_id,
+        episodeId: r.access_id,
+        id: id,
         number: r.episode,
       }))
       .sort((a, b) => a.number - b.number)

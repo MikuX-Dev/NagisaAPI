@@ -78,7 +78,8 @@ class Nagisa extends AnimeBase {
             title: r.title ?? '',
           },
         ],
-        id: r.id?.toString(),
+        id,
+        episodeId: r.id?.toString(),
         hasDub: r.metadata?.dub,
         number: r.number ?? idx + 1,
 

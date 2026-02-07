@@ -65,6 +65,7 @@ export interface ProviderEpisode {
 
 export interface CrysolineEpisode {
   id?: string | null
+  episodeId?: string | null
   title?: string | null
   thumbnailImage?: string | null
   preview?: string | null

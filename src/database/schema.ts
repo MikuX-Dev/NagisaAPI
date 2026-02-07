@@ -241,6 +241,8 @@ export const episode = pgTable(
       Array<{
         providerType: Array<'SUB' | 'DUB' | 'H-SUB'>
         providerName: string
+        id: string
+        episodeId: string
       }>
     >(),
     createdAt: text('created_at').notNull().$type<string>(),

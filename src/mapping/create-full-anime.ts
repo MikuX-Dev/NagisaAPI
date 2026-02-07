@@ -551,7 +551,14 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
           recap: streamEp.recap ?? false,
           runtime: streamEp.runtime ?? null,
           ago: null,
-          providers: [{ providerType: episodeProviderTypes, providerName }],
+          providers: [
+            {
+              id: streamEp.id ?? '',
+              episodeId: streamEp.episodeId ?? '',
+              providerType: episodeProviderTypes,
+              providerName,
+            },
+          ],
           createdAt: Date.now(),
           updatedAt: Date.now(),
         })
@@ -569,7 +576,12 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
             ]),
           ]
         } else {
-          providers.push({ providerType: episodeProviderTypes, providerName })
+          providers.push({
+            id: streamEp.id ?? '',
+            episodeId: streamEp.episodeId ?? '',
+            providerType: episodeProviderTypes,
+            providerName,
+          })
         }
 
         episodeMap.set(streamEp.number, {

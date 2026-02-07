@@ -136,6 +136,8 @@ export interface Episode {
   runtime: number | null
   ago: string | null
   providers: {
+    episodeId: string
+    id: string
     providerType: ('SUB' | 'DUB' | 'H-SUB')[]
     providerName: string
   }[]

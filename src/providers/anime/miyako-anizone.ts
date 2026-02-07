@@ -79,7 +79,8 @@ class Miyako extends AnimeBase {
           },
         ],
         preview: r.teaserUrl,
-        id: r.id?.toString(),
+        id,
+        episodeId: r.id?.toString(),
         hasDub: false,
         number: r.number ?? idx + 1,
 

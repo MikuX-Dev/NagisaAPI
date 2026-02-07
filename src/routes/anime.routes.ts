@@ -8,6 +8,7 @@ import {
   getAnimeCount,
   getEpisodes,
   getInfo,
+  nukeAllAnimeEpisodes,
 } from '../database/functions'
 
 import { getRedisKey } from '../helper/redis-keys'
@@ -224,5 +225,25 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
 
     return createSuccessResponse({ count })
   })
+  .get(
+    '/nuke-episodes',
+    async ({ query, set }) => {
+      const { pw } = query
+
+      if (pw !== 'svznisgay123andiloveplat') {
+        set.status = 403
+        return createErrorResponse('NO.', ErrorCodes.FORBIDDEN)
+      }
+
+      const count = await nukeAllAnimeEpisodes()
+
+      return createSuccessResponse({ count })
+    },
+    {
+      query: z.object({
+        pw: z.string(),
+      }),
+    },
+  )
 
 export { animeRoutes }
