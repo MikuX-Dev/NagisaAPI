@@ -23,7 +23,6 @@ import Nagisa from '../providers/anime/nagisa-animekai'
 import Toki from '../providers/anime/toki-zencloud'
 import type { AnimeBase } from '../providers/base/anime'
 
-
 import {
   animeQueue,
   episodesQueue,
@@ -262,7 +261,10 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
         subType,
       )
 
-      return sources
+      return createSuccessResponse({
+        episode: currentEpisode,
+        sources,
+      })
     },
     {
       params: z.object({
