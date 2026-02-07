@@ -131,8 +131,8 @@ export interface Episode {
   description: string | null
   number: number
   rating: number | null
-  filler: boolean
-  recap: boolean
+  filler: boolean | null
+  recap: boolean | null
   runtime: number | null
   ago: string | null
   providers: {
