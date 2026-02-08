@@ -1,0 +1,1 @@
+ALTER TABLE "info" ADD COLUMN "string" text NOT NULL;
