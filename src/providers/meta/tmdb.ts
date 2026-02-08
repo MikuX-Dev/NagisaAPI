@@ -454,12 +454,14 @@ class TheMovieDB extends MetaBase {
         ) || []
       const artworksData = await artworksResponse.json<TMDBImagesResponse>()
 
-      function getLogo(
+      function getBestImage(
         logos: TMDBImage[],
-        language_iso: 'en' | 'jp' = 'en',
+        language_iso: 'en' | 'jp' | null = null,
         dimension: { width: number; height: number } | 'smallest' = 'smallest',
       ): TMDBImage | null {
-        const filtered = logos.filter((l) => l.iso_639_1 === language_iso)
+        const filtered = language_iso
+          ? logos.filter((l) => l.iso_639_1 === language_iso)
+          : logos
 
         if (filtered.length === 0) return null
 
@@ -484,17 +486,23 @@ class TheMovieDB extends MetaBase {
         }
       }
 
-      const logoImagePath = getLogo(artworksData.logos, 'en', {
+      const logoImagePath = getBestImage(artworksData.logos, 'en', {
         height: 300,
         width: 400,
+      })?.file_path
+      const bannerImagePath = getBestImage(artworksData.backdrops, null, {
+        width: 3840,
+        height: 2180,
       })?.file_path
 
       const artwork = await this.getArtwork(anime)
 
-      const logoImage = `https://image.tmdb.org/t/p/original/${logoImagePath}`
+      const logoImage = `https://image.tmdb.org/t/p/original${logoImagePath}`
+      const bannerImage = `https://image.tmdb.org/t/p/original${bannerImagePath}`
 
       return {
         logoImage,
+        bannerImage,
         genres,
         tags: keywords,
         titles: [

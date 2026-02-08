@@ -287,6 +287,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
       data.tvdb?.coverImage ??
       null,
     bannerImage:
+      data.tmdb?.bannerImage ??
       data.tvdb?.bannerImage ??
       data.kitsu?.bannerImage ??
       data.anilist?.bannerImage ??
@@ -295,7 +296,8 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     logoImage: data.tvdb?.logoImage ?? data.tmdb?.logoImage ?? null,
     color:
       (await getDominantColor(
-        data.tvdb?.bannerImage ??
+        data.tmdb?.bannerImage ??
+          data.tvdb?.bannerImage ??
           data.kitsu?.bannerImage ??
           data.anilist?.bannerImage ??
           data.mal?.bannerImage ??
@@ -619,9 +621,9 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
 }
 
 // await Bun.write(
-//   'episodes.json',
+//   'info.json',
 //   JSON.stringify(
-//     await getEpisodes({
+//     await getMap({
 //       type: 'TV',
 //       anidb_id: 16188,
 //       anilist_id: 132052,
