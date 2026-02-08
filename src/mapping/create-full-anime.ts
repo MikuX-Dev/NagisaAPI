@@ -285,6 +285,32 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
   }
 
   const externalIds = transformAnime(anime)
+  const relations = getRelations()
+  const hasPrequelRelation = relations?.some(
+    (relation) => relation.relationType?.toLowerCase() === 'prequel',
+  )
+
+  let coverImage: null | string = null
+
+  if (hasPrequelRelation) {
+    const seasons = await providers.tmdb.getSeasons(anime)
+    const tmdbCoverImage = seasons?.closestSeason?.poster_path
+      ? `https://image.tmdb.org/t/p/original${seasons?.closestSeason?.poster_path}`
+      : null
+    coverImage =
+      tmdbCoverImage ??
+      data.anilist?.coverImage ??
+      data.mal?.coverImage ??
+      data.tvdb?.coverImage ??
+      null
+  } else {
+    coverImage =
+      data.tmdb?.coverImage ??
+      data.anilist?.coverImage ??
+      data.mal?.coverImage ??
+      data.tvdb?.coverImage ??
+      null
+  }
 
   const info: Info = {
     id: nanoid().toString(),
@@ -299,11 +325,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     externalIds,
 
     // Images: Prefer high-quality providers, but TVDB is often best for banners/logos
-    coverImage:
-      data.anilist?.coverImage ??
-      data.mal?.coverImage ??
-      data.tvdb?.coverImage ??
-      null,
+    coverImage,
     bannerImage:
       data.tmdb?.bannerImage ??
       data.tvdb?.bannerImage ??
@@ -351,7 +373,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
 
     // Collections (Merged & Prioritized)
     characters: getCharacters(),
-    relations: getRelations(),
+    relations: relations,
     artwork: Array.from(mergedArtwork.values()), // Shared/Merged set
     studio: Array.from(mergedStudios.values()), // Shared/Merged set
     genres: Array.from(mergedGenres.values()), // Shared/Merged set
@@ -643,21 +665,22 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
 //   JSON.stringify(
 //     await getMap({
 //       type: 'TV',
-//       anidb_id: 16188,
-//       anilist_id: 132052,
-//       animecountdown_id: 1604475,
-//       'anime-planet_id': 'a-couple-of-cuckoos',
-//       anisearch_id: 16163,
+//       anidb_id: 18773,
+//       anilist_id: 179828,
+//       animecountdown_id: 2525052,
+//       animenewsnetwork_id: 32992,
+//       'anime-planet_id': 'a-couple-of-cuckoos-season-2',
+//       anisearch_id: 19504,
 //       imdb_id: 'tt14400866',
-//       kitsu_id: 44310,
-//       livechart_id: 10346,
-//       mal_id: 48675,
-//       simkl_id: 1604475,
+//       kitsu_id: 49067,
+//       livechart_id: 12766,
+//       mal_id: 59402,
+//       simkl_id: 2525052,
 //       themoviedb_id: 122587,
 //       tvdb_id: 400585,
 //       season: {
-//         tvdb: 1,
-//         tmdb: 1,
+//         tvdb: 2,
+//         tmdb: 2,
 //       },
 //     }),
 //     null,

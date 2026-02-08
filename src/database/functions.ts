@@ -679,6 +679,7 @@ export const getAnimeFromAnilistIds = async (
     .select({
       slug: info.slug,
       id: info.id,
+      title: info.title,
       titles: info.titles,
       coverImage: info.coverImage,
       bannerImage: info.bannerImage,

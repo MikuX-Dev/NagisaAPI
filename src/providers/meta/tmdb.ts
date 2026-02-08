@@ -62,7 +62,7 @@ class TheMovieDB extends MetaBase {
     }
   }
 
-  private async getSeasons(fribbAnime: FribbAnime) {
+  public async getSeasons(fribbAnime: FribbAnime) {
     const type = fribbAnime.type?.toLowerCase() === 'movie' ? 'movie' : 'tv'
     const API_KEY = process.env.TMDB_API_KEY
 
@@ -494,15 +494,21 @@ class TheMovieDB extends MetaBase {
         width: 3840,
         height: 2180,
       })?.file_path
+      const coverImagePath = getBestImage(artworksData.posters, null, {
+        width: 2000,
+        height: 3000,
+      })?.file_path
 
       const artwork = await this.getArtwork(anime)
 
       const logoImage = `https://image.tmdb.org/t/p/original${logoImagePath}`
       const bannerImage = `https://image.tmdb.org/t/p/original${bannerImagePath}`
+      const coverImage = `https://image.tmdb.org/t/p/original${coverImagePath}`
 
       return {
         logoImage,
         bannerImage,
+        coverImage,
         genres,
         tags: keywords,
         titles: [

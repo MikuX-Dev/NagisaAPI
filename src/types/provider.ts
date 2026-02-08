@@ -130,6 +130,7 @@ export type FribbAnime = {
   simkl_id?: number
   themoviedb_id?: number
   tvdb_id?: number
+  animenewsnetwork_id?: number
   season?: {
     tvdb?: number
     tmdb?: number
