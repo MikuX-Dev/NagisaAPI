@@ -1,14 +1,19 @@
-export function slug(input: string): string {
-  if (typeof input !== 'string') {
-    throw new TypeError('slug() expects a string')
-  }
+export function slug(str?: string | null) {
+  if (!str) return ''
 
-  return input
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+  return (
+    str
+      .normalize('NFKD')
+      .toLowerCase()
+      // Remove accents/diacritics
+      .replace(/[\u0300-\u036f]/g, '')
+      // Replace spaces and underscores with hyphens
+      .replace(/[\s_]+/g, '-')
+      // Replace any non-alphanumeric chars (except hyphens) with hyphens
+      .replace(/[^a-z0-9-]/g, '-')
+      // Replace multiple consecutive hyphens with single hyphen
+      .replace(/-+/g, '-')
+      // Remove leading/trailing hyphens
+      .replace(/^-+|-+$/g, '')
+  )
 }

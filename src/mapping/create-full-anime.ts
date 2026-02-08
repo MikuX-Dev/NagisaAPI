@@ -554,7 +554,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
           number: streamEp.number,
           rating: streamEp.rating ?? null,
           filler: false,
-          recap: streamEp.recap ?? null,
+          recap: streamEp.recap ?? false,
           runtime: streamEp.runtime ?? null,
           ago: null,
           providers: [
