@@ -494,7 +494,7 @@ class TheMovieDB extends MetaBase {
         width: 3840,
         height: 2180,
       })?.file_path
-      const coverImagePath = getBestImage(artworksData.posters, null, {
+      const coverImagePath = getBestImage(artworksData.posters, 'en', {
         width: 2000,
         height: 3000,
       })?.file_path
