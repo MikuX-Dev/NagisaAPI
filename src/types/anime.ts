@@ -94,6 +94,7 @@ export type IArtwork = {
 export interface Info {
   id: string
   slug: string
+  title: string
   titles: ITitle[]
   synonyms: string[]
   externalIds: Record<string, string>

@@ -21,6 +21,7 @@ export const info = pgTable(
       .primaryKey()
       .$defaultFn(() => nanoid()),
     slug: text('slug').notNull(),
+    title: text('string').notNull(),
     externalIds: jsonb('external_ids').$type<{ [x: string]: string }>(),
     titles: jsonb('titles')
       .notNull()

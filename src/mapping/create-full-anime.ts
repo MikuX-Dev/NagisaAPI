@@ -243,16 +243,33 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
 
   const airDate: IAirDate = {
     start: {
-      month: data.anilist?.airDate?.start.month ?? null,
-      day: data.anilist?.airDate?.start.day ?? null,
-      year: data.anilist?.airDate?.start.year ?? null,
-      string: airDateToISOString(data.anilist?.airDate?.start ?? null),
+      month:
+        data.anilist?.airDate?.start.month ??
+        data.mal?.airDate?.start.month ??
+        null,
+      day:
+        data.anilist?.airDate?.start.day ??
+        data.mal?.airDate?.start.day ??
+        null,
+      year:
+        data.anilist?.airDate?.start.year ??
+        data.mal?.airDate?.start.year ??
+        null,
+      string: airDateToISOString(
+        data.anilist?.airDate?.start ?? data.mal?.airDate?.start ?? null,
+      ),
     },
     end: {
-      month: data.anilist?.airDate?.end.month ?? null,
-      day: data.anilist?.airDate?.end.day ?? null,
-      year: data.anilist?.airDate?.end.year ?? null,
-      string: airDateToISOString(data.anilist?.airDate?.end ?? null),
+      month:
+        data.anilist?.airDate?.end.month ??
+        data.mal?.airDate?.end.month ??
+        null,
+      day: data.anilist?.airDate?.end.day ?? data.mal?.airDate?.end.day ?? null,
+      year:
+        data.anilist?.airDate?.end.year ?? data.mal?.airDate?.end.year ?? null,
+      string: airDateToISOString(
+        data.anilist?.airDate?.end ?? data.mal?.airDate?.end ?? null,
+      ),
     },
   }
 
@@ -274,6 +291,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     slug: slug(
       titleToMap.english ?? titleToMap.romaji ?? titleToMap.native ?? '',
     ),
+    title: titleToMap.english ?? titleToMap.romaji ?? titleToMap.native ?? '',
     // Core Metadata
     titles: getTitles(),
     synonyms: data.anilist?.synonyms || data.mal?.synonyms || [],
@@ -293,7 +311,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
       data.anilist?.bannerImage ??
       data.mal?.bannerImage ??
       null,
-    logoImage: data.tvdb?.logoImage ?? data.tmdb?.logoImage ?? null,
+    logoImage: data.tmdb?.logoImage ?? null,
     color:
       (await getDominantColor(
         data.tmdb?.bannerImage ??
