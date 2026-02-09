@@ -440,16 +440,24 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   ]
 
   const anilist = new Anilist()
-  const anilistInfo = await anilist.getInfo(anime)
+  const mal = new MyAnimeList()
+  const [anilistInfo, malInfo] = await Promise.all([
+    anilist.getInfo(anime),
+    mal.getInfo(anime),
+  ])
 
   const titleToMap = {
     english:
-      anilistInfo?.titles.find((t) => t.languageCode === 'english')?.title ??
+      anilistInfo?.titles.find((t) => t.languageCode === 'english')?.title ||
+      malInfo?.titles.find((t) => t.languageCode === 'english')?.title ||
       '',
     romaji:
-      anilistInfo?.titles.find((t) => t.languageCode === 'romaji')?.title ?? '',
+      anilistInfo?.titles.find((t) => t.languageCode === 'romaji')?.title ||
+      malInfo?.titles.find((t) => t.languageCode === 'romaji')?.title ||
+      '',
     native:
-      anilistInfo?.titles.find((t) => t.languageCode === 'japanese')?.title ??
+      anilistInfo?.titles.find((t) => t.languageCode === 'japanese')?.title ||
+      malInfo?.titles.find((t) => t.languageCode === 'japanese')?.title ||
       '',
   }
 
