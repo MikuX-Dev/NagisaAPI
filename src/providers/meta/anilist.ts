@@ -22,7 +22,10 @@ import { MetaBase } from '../base/meta'
 class Anilist extends MetaBase {
   override name: string = 'anilist'
   override url: string = 'https://graphql.anilist.co'
-  public corsProxies: string[] = ['https://proxy.sohom829.workers.dev']
+  public corsProxies: string[] = [
+    'https://proxy.sohom829.workers.dev/',
+    'https://cors-tube.vercel.app?url=',
+  ]
 
   private getProxiedUrl() {
     const url = this.url
@@ -31,7 +34,7 @@ class Anilist extends MetaBase {
     if (randomNumber < 0.5) {
       const proxyIndex =
         crypto.randomBytes(4).readUInt32BE() % this.corsProxies.length
-      return `${this.corsProxies[proxyIndex]}/${url}`
+      return `${this.corsProxies[proxyIndex]}${url}`
     } else {
       return url
     }
