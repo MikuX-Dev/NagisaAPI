@@ -1,4 +1,4 @@
-import ky, { type KyInstance } from 'ky'
+import ky from 'ky'
 
 import { mapAniListFormatToIFormat } from '../../helper/map-format'
 import { mapAnilistStatus } from '../../helper/map-status'
