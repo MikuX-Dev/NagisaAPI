@@ -345,6 +345,10 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
       )) ??
       data.anilist?.color ??
       null,
+    coverColor:
+      (await getDominantColor(coverImage ?? undefined)) ??
+      data.anilist?.color ??
+      null,
 
     // Status & Dates (Anilist is generally most up-to-date for status)
     status: (data.anilist?.status ??

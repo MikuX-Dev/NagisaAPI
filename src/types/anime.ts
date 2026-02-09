@@ -102,6 +102,7 @@ export interface Info {
   bannerImage: string | null
   logoImage: string | null
   color: string | null
+  coverColor: string | null
   description: string | null
   airDate: IAirDate | null
   status: IStatus | null

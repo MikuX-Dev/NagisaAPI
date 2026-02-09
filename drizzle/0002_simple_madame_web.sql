@@ -1,0 +1,1 @@
+ALTER TABLE "info" ADD COLUMN "cover_color" text;

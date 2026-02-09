@@ -31,6 +31,7 @@ export const info = pgTable(
     bannerImage: text('banner_image'),
     logoImage: text('logo_image'),
     color: text('color'),
+    coverColor: text('cover_color'),
     description: text('description'),
     airDate: jsonb('air_date').$type<{
       start: {
