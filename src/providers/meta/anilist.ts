@@ -40,12 +40,8 @@ class Anilist extends MetaBase {
     }
   }
 
-  override async getInfo(anime: FribbAnime): Promise<ProviderInfo | undefined> {
-    const anilist_id = anime.anilist_id
-
-    if (!anilist_id) return undefined
-
-    const res = await ky.post(this.getProxiedUrl(), {
+  private async makeRequest(url: string, anilist_id: number) {
+    return await ky.post(url, {
       json: {
         query: this.query,
         variables: {
@@ -53,129 +49,183 @@ class Anilist extends MetaBase {
         },
       },
     })
+  }
 
-    const xRetryAfter = res.headers.get('Retry-After')
-    const xRateLimit = res.headers.get('X-RateLimit-Limit')
-    const xRateLimitRemaining = res.headers.get('X-RateLimit-Remaining')
+  override async getInfo(anime: FribbAnime): Promise<ProviderInfo | undefined> {
+    const anilist_id = anime.anilist_id
 
-    const data = await res.json<{ data: AnimeInfoResponse }>()
+    if (!anilist_id) return undefined
 
-    const media = data.data.Media
-    let currentEpisode = 0
-    if (media?.nextAiringEpisode) {
-      currentEpisode = media.nextAiringEpisode.episode - 1
-    } else if (
-      media?.episodes &&
-      (media.status === 'FINISHED' || media.status === 'CANCELLED')
-    ) {
-      currentEpisode = media.episodes
+    return this.getInfoWithRetry(anilist_id)
+  }
+
+  private async getInfoWithRetry(
+    anilist_id: number,
+    retryCount: number = 0,
+    maxRetries: number = 3,
+  ): Promise<ProviderInfo | undefined> {
+    const url = this.getProxiedUrl()
+
+    try {
+      const res = await this.makeRequest(url, anilist_id)
+
+      // Check for rate limit status (429)
+      if (res.status === 429) {
+        const retryAfter = res.headers.get('Retry-After')
+        const waitTime = retryAfter ? Number(retryAfter) * 1000 : 60000
+
+        console.warn(
+          `Rate limited (429). Waiting ${waitTime}ms before retry ${retryCount + 1}/${maxRetries}...`,
+        )
+
+        await Bun.sleep(waitTime)
+
+        if (retryCount < maxRetries) {
+          return this.getInfoWithRetry(anilist_id, retryCount + 1, maxRetries)
+        } else {
+          console.error(
+            `Max retries (${maxRetries}) exceeded for rate limiting`,
+          )
+          return undefined
+        }
+      }
+
+      const xRetryAfter = res.headers.get('Retry-After')
+      const xRateLimit = res.headers.get('X-RateLimit-Limit')
+      const xRateLimitRemaining = res.headers.get('X-RateLimit-Remaining')
+
+      const data = await res.json<{ data: AnimeInfoResponse }>()
+
+      const media = data.data.Media
+      let currentEpisode = 0
+      if (media?.nextAiringEpisode) {
+        currentEpisode = media.nextAiringEpisode.episode - 1
+      } else if (
+        media?.episodes &&
+        (media.status === 'FINISHED' || media.status === 'CANCELLED')
+      ) {
+        currentEpisode = media.episodes
+      }
+
+      const characters: ICharacter[] =
+        media?.characters?.edges?.map(
+          (char) =>
+            ({
+              name: char.node.name.full ?? null,
+              role: char.role ?? null,
+              image: char.node.image.large ?? char.node.image.medium ?? null,
+              voiceActor: {
+                name:
+                  char.voiceActors?.find(
+                    (voice) =>
+                      voice.languageV2 === 'Japanese' || char.voiceActors?.[0],
+                  )?.name.full ?? null,
+                image:
+                  char.voiceActors?.find(
+                    (voice) =>
+                      voice.languageV2 === 'Japanese' || char.voiceActors?.[0],
+                  )?.image.large ??
+                  char.voiceActors?.find(
+                    (voice) =>
+                      voice.languageV2 === 'Japanese' || char.voiceActors?.[0],
+                  )?.image.medium ??
+                  null,
+              } as IVoiceActor,
+            }) as ICharacter,
+        ) ?? []
+      const relations: IRelation[] =
+        media?.relations?.edges?.map(
+          (rel) =>
+            ({
+              id: rel.node.id,
+              titles: [
+                {
+                  languageCode: 'english',
+                  title: rel.node.title.english,
+                },
+                {
+                  languageCode: 'japanese',
+                  title: rel.node.title.native,
+                },
+                {
+                  languageCode: 'romaji',
+                  title: rel.node.title.romaji,
+                },
+              ],
+              type: rel.node.type,
+              relationType: rel.relationType,
+              format: rel.node.format,
+            }) as IRelation,
+        ) ?? []
+
+      return {
+        id: media?.id.toString(),
+        titles: [
+          {
+            languageCode: 'english',
+            title: media?.title.english,
+          },
+          {
+            languageCode: 'japanese',
+            title: media?.title.native,
+          },
+          {
+            languageCode: 'romaji',
+            title: media?.title.romaji,
+          },
+        ],
+        bannerImage: media?.bannerImage,
+        airDate: {
+          start: media?.startDate ?? null,
+          end: media?.endDate ?? null,
+        },
+        coverImage:
+          media?.coverImage?.extraLarge ??
+          media?.coverImage?.large ??
+          media?.coverImage?.medium ??
+          null,
+        color: media?.coverImage?.color ?? null,
+        format: mapAniListFormatToIFormat(media?.format ?? null),
+        status: mapAnilistStatus(media?.status ?? null),
+        season: media?.season?.toLowerCase() as ISeason,
+        countryOfOrigin: media?.countryOfOrigin,
+        genres: media?.genres?.map((genre) => ({
+          id: 0,
+          name: genre,
+        })),
+        totalEpisodes:
+          media?.episodes ?? media?.nextAiringEpisode?.episode ?? null,
+        characters,
+        relations,
+        tags: media?.tags?.map((tag) => ({
+          id: tag.id,
+          name: tag.name,
+        })),
+        currentEpisode,
+
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+
+        ratelimit: {
+          remaining: xRateLimitRemaining ? Number(xRateLimitRemaining) : null,
+          limit: xRateLimit ? Number(xRateLimit) : null,
+          retryAfter: xRetryAfter ? Number(xRetryAfter) : null,
+        },
+      } as ProviderInfo
+    } catch (error) {
+      console.error(
+        `Error fetching anime info (attempt ${retryCount + 1}):`,
+        error,
+      )
+
+      if (retryCount < maxRetries) {
+        console.warn(`Retrying with new URL...`)
+        await Bun.sleep(2000)
+        return this.getInfoWithRetry(anilist_id, retryCount + 1, maxRetries)
+      }
+
+      throw error
     }
-
-    const characters: ICharacter[] =
-      media?.characters?.edges?.map(
-        (char) =>
-          ({
-            name: char.node.name.full ?? null,
-            role: char.role ?? null,
-            image: char.node.image.large ?? char.node.image.medium ?? null,
-            voiceActor: {
-              name:
-                char.voiceActors?.find(
-                  (voice) =>
-                    voice.languageV2 === 'Japanese' || char.voiceActors?.[0],
-                )?.name.full ?? null,
-              image:
-                char.voiceActors?.find(
-                  (voice) =>
-                    voice.languageV2 === 'Japanese' || char.voiceActors?.[0],
-                )?.image.large ??
-                char.voiceActors?.find(
-                  (voice) =>
-                    voice.languageV2 === 'Japanese' || char.voiceActors?.[0],
-                )?.image.medium ??
-                null,
-            } as IVoiceActor,
-          }) as ICharacter,
-      ) ?? []
-    const relations: IRelation[] =
-      media?.relations?.edges?.map(
-        (rel) =>
-          ({
-            id: rel.node.id,
-            titles: [
-              {
-                languageCode: 'english',
-                title: rel.node.title.english,
-              },
-              {
-                languageCode: 'japanese',
-                title: rel.node.title.native,
-              },
-              {
-                languageCode: 'romaji',
-                title: rel.node.title.romaji,
-              },
-            ],
-            type: rel.node.type,
-            relationType: rel.relationType,
-            format: rel.node.format,
-          }) as IRelation,
-      ) ?? []
-
-    return {
-      id: media?.id.toString(),
-      titles: [
-        {
-          languageCode: 'english',
-          title: media?.title.english,
-        },
-        {
-          languageCode: 'japanese',
-          title: media?.title.native,
-        },
-        {
-          languageCode: 'romaji',
-          title: media?.title.romaji,
-        },
-      ],
-      bannerImage: media?.bannerImage,
-      airDate: {
-        start: media?.startDate ?? null,
-        end: media?.endDate ?? null,
-      },
-      coverImage:
-        media?.coverImage?.extraLarge ??
-        media?.coverImage?.large ??
-        media?.coverImage?.medium ??
-        null,
-      color: media?.coverImage?.color ?? null,
-      format: mapAniListFormatToIFormat(media?.format ?? null),
-      status: mapAnilistStatus(media?.status ?? null),
-      season: media?.season?.toLowerCase() as ISeason,
-      countryOfOrigin: media?.countryOfOrigin,
-      genres: media?.genres?.map((genre) => ({
-        id: 0,
-        name: genre,
-      })),
-      totalEpisodes:
-        media?.episodes ?? media?.nextAiringEpisode?.episode ?? null,
-      characters,
-      relations,
-      tags: media?.tags?.map((tag) => ({
-        id: tag.id,
-        name: tag.name,
-      })),
-      currentEpisode,
-
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-
-      ratelimit: {
-        remaining: xRateLimitRemaining ? Number(xRateLimitRemaining) : null,
-        limit: xRateLimit ? Number(xRateLimit) : null,
-        retryAfter: xRetryAfter ? Number(xRetryAfter) : null,
-      },
-    } as ProviderInfo
   }
 
   private query = `query AnimeInfo($mediaId: Int) {
