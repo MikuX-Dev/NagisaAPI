@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import ky from 'ky'
 
 import { mapAniListFormatToIFormat } from '../../helper/map-format'
@@ -25,8 +26,15 @@ class Anilist extends MetaBase {
 
   private getProxiedUrl() {
     const url = this.url
+    const randomNumber = crypto.randomBytes(4).readUInt32BE() / 0xffffffff
 
-    return `${this.corsProxies[(Math.random() * this.corsProxies.length) | 0]}/${url}`
+    if (randomNumber < 0.5) {
+      const proxyIndex =
+        crypto.randomBytes(4).readUInt32BE() % this.corsProxies.length
+      return `${this.corsProxies[proxyIndex]}/${url}`
+    } else {
+      return url
+    }
   }
 
   override async getInfo(anime: FribbAnime): Promise<ProviderInfo | undefined> {
