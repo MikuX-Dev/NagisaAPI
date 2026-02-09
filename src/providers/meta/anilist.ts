@@ -21,28 +21,35 @@ import { MetaBase } from '../base/meta'
 class Anilist extends MetaBase {
   override name: string = 'anilist'
   override url: string = 'https://graphql.anilist.co'
+  public corsProxies: string[] = ['https://proxy.sohom829.workers.dev']
 
-  public override client: KyInstance = ky.create({
-    prefixUrl: this.url,
-  })
+  private getProxiedUrl() {
+    const url = this.url
+
+    return `${this.corsProxies[(Math.random() * this.corsProxies.length) | 0]}/${url}`
+  }
 
   override async getInfo(anime: FribbAnime): Promise<ProviderInfo | undefined> {
     const anilist_id = anime.anilist_id
 
     if (!anilist_id) return undefined
 
-    const res = await this.client
-      .post(``, {
-        json: {
-          query: this.query,
-          variables: {
-            mediaId: anilist_id,
-          },
+    const res = await ky.post(this.getProxiedUrl(), {
+      json: {
+        query: this.query,
+        variables: {
+          mediaId: anilist_id,
         },
-      })
-      .json<{ data: AnimeInfoResponse }>()
+      },
+    })
 
-    const media = res.data.Media
+    const xRetryAfter = res.headers.get('Retry-After')
+    const xRateLimit = res.headers.get('X-RateLimit-Limit')
+    const xRateLimitRemaining = res.headers.get('X-RateLimit-Remaining')
+
+    const data = await res.json<{ data: AnimeInfoResponse }>()
+
+    const media = data.data.Media
     let currentEpisode = 0
     if (media?.nextAiringEpisode) {
       currentEpisode = media.nextAiringEpisode.episode - 1
@@ -151,6 +158,12 @@ class Anilist extends MetaBase {
 
       createdAt: Date.now(),
       updatedAt: Date.now(),
+
+      ratelimit: {
+        remaining: xRateLimitRemaining ? Number(xRateLimitRemaining) : null,
+        limit: xRateLimit ? Number(xRateLimit) : null,
+        retryAfter: xRetryAfter ? Number(xRetryAfter) : null,
+      },
     } as ProviderInfo
   }
 

@@ -44,6 +44,12 @@ export interface ProviderInfo {
   tags?: ITag[]
   createdAt: number
   updatedAt: number
+
+  ratelimit?: {
+    retryAfter: number | null
+    limit: number | null
+    remaining: number | null
+  }
 }
 
 export interface ProviderEpisode {
