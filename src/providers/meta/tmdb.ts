@@ -501,9 +501,15 @@ class TheMovieDB extends MetaBase {
 
       const artwork = await this.getArtwork(anime)
 
-      const logoImage = `https://image.tmdb.org/t/p/original${logoImagePath}`
-      const bannerImage = `https://image.tmdb.org/t/p/original${bannerImagePath}`
-      const coverImage = `https://image.tmdb.org/t/p/original${coverImagePath}`
+      const logoImage = logoImagePath
+        ? `https://image.tmdb.org/t/p/original${logoImagePath}`
+        : null
+      const bannerImage = bannerImagePath
+        ? `https://image.tmdb.org/t/p/original${bannerImagePath}`
+        : null
+      const coverImage = coverImagePath
+        ? `https://image.tmdb.org/t/p/original${coverImagePath}`
+        : null
 
       return {
         logoImage,
