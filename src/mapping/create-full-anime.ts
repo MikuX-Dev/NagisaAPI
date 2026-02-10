@@ -84,45 +84,45 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const titleToMap = {
     english:
       data.anilist?.titles.find((title) => title.languageCode === 'english')
-        ?.title ??
+        ?.title ||
       data.kitsu?.titles.find((title) => title.languageCode === 'english')
-        ?.title ??
+        ?.title ||
       data.mal?.titles.find((title) => title.languageCode === 'english')
-        ?.title ??
+        ?.title ||
       data.anidb?.titles.find((title) => title.languageCode === 'english')
-        ?.title ??
+        ?.title ||
       data.simkl?.titles.find((title) => title.languageCode === 'english')
-        ?.title ??
+        ?.title ||
       data.tmdb?.titles.find((title) => title.languageCode === 'english')
-        ?.title ??
+        ?.title ||
       '',
     romaji:
       data.anilist?.titles.find((title) => title.languageCode === 'romaji')
-        ?.title ??
+        ?.title ||
       data.kitsu?.titles.find((title) => title.languageCode === 'romaji')
-        ?.title ??
+        ?.title ||
       data.mal?.titles.find((title) => title.languageCode === 'romaji')
-        ?.title ??
+        ?.title ||
       data.anidb?.titles.find((title) => title.languageCode === 'romaji')
-        ?.title ??
+        ?.title ||
       data.simkl?.titles.find((title) => title.languageCode === 'romaji')
-        ?.title ??
+        ?.title ||
       data.tmdb?.titles.find((title) => title.languageCode === 'romaji')
-        ?.title ??
+        ?.title ||
       '',
     native:
       data.anilist?.titles.find((title) => title.languageCode === 'japanese')
-        ?.title ??
+        ?.title ||
       data.kitsu?.titles.find((title) => title.languageCode === 'japanese')
-        ?.title ??
+        ?.title ||
       data.mal?.titles.find((title) => title.languageCode === 'japanese')
-        ?.title ??
+        ?.title ||
       data.anidb?.titles.find((title) => title.languageCode === 'japanese')
-        ?.title ??
+        ?.title ||
       data.simkl?.titles.find((title) => title.languageCode === 'japanese')
-        ?.title ??
+        ?.title ||
       data.tmdb?.titles.find((title) => title.languageCode === 'japanese')
-        ?.title ??
+        ?.title ||
       '',
   }
 
@@ -243,16 +243,33 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
 
   const airDate: IAirDate = {
     start: {
-      month: data.anilist?.airDate?.start.month ?? null,
-      day: data.anilist?.airDate?.start.day ?? null,
-      year: data.anilist?.airDate?.start.year ?? null,
-      string: airDateToISOString(data.anilist?.airDate?.start ?? null),
+      month:
+        data.anilist?.airDate?.start.month ||
+        data.mal?.airDate?.start.month ||
+        null,
+      day:
+        data.anilist?.airDate?.start.day ||
+        data.mal?.airDate?.start.day ||
+        null,
+      year:
+        data.anilist?.airDate?.start.year ||
+        data.mal?.airDate?.start.year ||
+        null,
+      string: airDateToISOString(
+        data.anilist?.airDate?.start || data.mal?.airDate?.start || null,
+      ),
     },
     end: {
-      month: data.anilist?.airDate?.end.month ?? null,
-      day: data.anilist?.airDate?.end.day ?? null,
-      year: data.anilist?.airDate?.end.year ?? null,
-      string: airDateToISOString(data.anilist?.airDate?.end ?? null),
+      month:
+        data.anilist?.airDate?.end.month ||
+        data.mal?.airDate?.end.month ||
+        null,
+      day: data.anilist?.airDate?.end.day || data.mal?.airDate?.end.day || null,
+      year:
+        data.anilist?.airDate?.end.year || data.mal?.airDate?.end.year || null,
+      string: airDateToISOString(
+        data.anilist?.airDate?.end || data.mal?.airDate?.end || null,
+      ),
     },
   }
 
@@ -268,12 +285,39 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
   }
 
   const externalIds = transformAnime(anime)
+  const relations = getRelations()
+  const hasPrequelRelation = relations?.some(
+    (relation) => relation.relationType?.toLowerCase() === 'prequel',
+  )
+
+  let coverImage: null | string = null
+
+  if (hasPrequelRelation) {
+    const seasons = await providers.tmdb.getSeasons(anime)
+    const tmdbCoverImage = seasons?.closestSeason?.poster_path
+      ? `https://image.tmdb.org/t/p/original${seasons?.closestSeason?.poster_path}`
+      : null
+    coverImage =
+      tmdbCoverImage ??
+      data.anilist?.coverImage ??
+      data.mal?.coverImage ??
+      data.tvdb?.coverImage ??
+      null
+  } else {
+    coverImage =
+      data.tmdb?.coverImage ??
+      data.anilist?.coverImage ??
+      data.mal?.coverImage ??
+      data.tvdb?.coverImage ??
+      null
+  }
 
   const info: Info = {
     id: nanoid().toString(),
     slug: slug(
-      titleToMap.english ?? titleToMap.romaji ?? titleToMap.native ?? '',
+      titleToMap.english || titleToMap.romaji || titleToMap.native || '',
     ),
+    title: titleToMap.english || titleToMap.romaji || titleToMap.native || '',
     // Core Metadata
     titles: getTitles(),
     synonyms: data.anilist?.synonyms || data.mal?.synonyms || [],
@@ -281,26 +325,28 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     externalIds,
 
     // Images: Prefer high-quality providers, but TVDB is often best for banners/logos
-    coverImage:
-      data.anilist?.coverImage ??
-      data.mal?.coverImage ??
-      data.tvdb?.coverImage ??
-      null,
+    coverImage,
     bannerImage:
+      data.tmdb?.bannerImage ??
       data.tvdb?.bannerImage ??
       data.kitsu?.bannerImage ??
       data.anilist?.bannerImage ??
       data.mal?.bannerImage ??
       null,
-    logoImage: data.tvdb?.logoImage ?? data.tmdb?.logoImage ?? null,
+    logoImage: data.tmdb?.logoImage ?? null,
     color:
       (await getDominantColor(
-        data.tvdb?.bannerImage ??
+        data.tmdb?.bannerImage ??
+          data.tvdb?.bannerImage ??
           data.kitsu?.bannerImage ??
           data.anilist?.bannerImage ??
           data.mal?.bannerImage ??
           undefined,
       )) ??
+      data.anilist?.color ??
+      null,
+    coverColor:
+      (await getDominantColor(coverImage ?? undefined)) ??
       data.anilist?.color ??
       null,
 
@@ -331,7 +377,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
 
     // Collections (Merged & Prioritized)
     characters: getCharacters(),
-    relations: getRelations(),
+    relations: relations,
     artwork: Array.from(mergedArtwork.values()), // Shared/Merged set
     studio: Array.from(mergedStudios.values()), // Shared/Merged set
     genres: Array.from(mergedGenres.values()), // Shared/Merged set
@@ -340,6 +386,9 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     // Timestamps
     createdAt: Date.now(),
     updatedAt: Date.now(),
+
+    // Anilist Rate Limit Headers
+    ratelimit: data.anilist?.ratelimit,
   }
 
   return info
@@ -395,16 +444,24 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   ]
 
   const anilist = new Anilist()
-  const anilistInfo = await anilist.getInfo(anime)
+  const mal = new MyAnimeList()
+  const [anilistInfo, malInfo] = await Promise.all([
+    anilist.getInfo(anime),
+    mal.getInfo(anime),
+  ])
 
   const titleToMap = {
     english:
-      anilistInfo?.titles.find((t) => t.languageCode === 'english')?.title ??
+      anilistInfo?.titles.find((t) => t.languageCode === 'english')?.title ||
+      malInfo?.titles.find((t) => t.languageCode === 'english')?.title ||
       '',
     romaji:
-      anilistInfo?.titles.find((t) => t.languageCode === 'romaji')?.title ?? '',
+      anilistInfo?.titles.find((t) => t.languageCode === 'romaji')?.title ||
+      malInfo?.titles.find((t) => t.languageCode === 'romaji')?.title ||
+      '',
     native:
-      anilistInfo?.titles.find((t) => t.languageCode === 'japanese')?.title ??
+      anilistInfo?.titles.find((t) => t.languageCode === 'japanese')?.title ||
+      malInfo?.titles.find((t) => t.languageCode === 'japanese')?.title ||
       '',
   }
 
@@ -554,7 +611,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
           number: streamEp.number,
           rating: streamEp.rating ?? null,
           filler: false,
-          recap: streamEp.recap ?? null,
+          recap: streamEp.recap ?? false,
           runtime: streamEp.runtime ?? null,
           ago: null,
           providers: [
@@ -619,25 +676,26 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
 }
 
 // await Bun.write(
-//   'episodes.json',
+//   'info.json',
 //   JSON.stringify(
-//     await getEpisodes({
+//     await getMap({
 //       type: 'TV',
-//       anidb_id: 16188,
-//       anilist_id: 132052,
-//       animecountdown_id: 1604475,
-//       'anime-planet_id': 'a-couple-of-cuckoos',
-//       anisearch_id: 16163,
+//       anidb_id: 18773,
+//       anilist_id: 179828,
+//       animecountdown_id: 2525052,
+//       animenewsnetwork_id: 32992,
+//       'anime-planet_id': 'a-couple-of-cuckoos-season-2',
+//       anisearch_id: 19504,
 //       imdb_id: 'tt14400866',
-//       kitsu_id: 44310,
-//       livechart_id: 10346,
-//       mal_id: 48675,
-//       simkl_id: 1604475,
+//       kitsu_id: 49067,
+//       livechart_id: 12766,
+//       mal_id: 59402,
+//       simkl_id: 2525052,
 //       themoviedb_id: 122587,
 //       tvdb_id: 400585,
 //       season: {
-//         tvdb: 1,
-//         tmdb: 1,
+//         tvdb: 2,
+//         tmdb: 2,
 //       },
 //     }),
 //     null,

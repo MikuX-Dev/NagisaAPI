@@ -94,6 +94,7 @@ export type IArtwork = {
 export interface Info {
   id: string
   slug: string
+  title: string
   titles: ITitle[]
   synonyms: string[]
   externalIds: Record<string, string>
@@ -101,6 +102,7 @@ export interface Info {
   bannerImage: string | null
   logoImage: string | null
   color: string | null
+  coverColor: string | null
   description: string | null
   airDate: IAirDate | null
   status: IStatus | null
@@ -121,6 +123,12 @@ export interface Info {
   tags: ITag[]
   createdAt: number
   updatedAt: number
+
+  ratelimit?: {
+    retryAfter: number | null
+    limit: number | null
+    remaining: number | null
+  }
 }
 
 export interface Episode {
@@ -131,8 +139,8 @@ export interface Episode {
   description: string | null
   number: number
   rating: number | null
-  filler: boolean | null
-  recap: boolean | null
+  filler: boolean
+  recap: boolean
   runtime: number | null
   ago: string | null
   providers: {

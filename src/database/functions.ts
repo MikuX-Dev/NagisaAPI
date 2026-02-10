@@ -679,6 +679,7 @@ export const getAnimeFromAnilistIds = async (
     .select({
       slug: info.slug,
       id: info.id,
+      title: info.title,
       titles: info.titles,
       coverImage: info.coverImage,
       bannerImage: info.bannerImage,
@@ -686,6 +687,7 @@ export const getAnimeFromAnilistIds = async (
       airDate: info.airDate,
       description: info.description,
       color: info.color,
+      coverColor: info.coverColor,
       status: info.status,
       format: info.format,
       season: info.season,

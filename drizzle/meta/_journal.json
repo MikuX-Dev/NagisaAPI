@@ -8,6 +8,20 @@
       "when": 1769950305834,
       "tag": "0000_steep_lethal_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770555949719,
+      "tag": "0001_square_catseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770648060447,
+      "tag": "0002_simple_madame_web",
+      "breakpoints": true
     }
   ]
 }

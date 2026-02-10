@@ -357,7 +357,7 @@ class MyAnimeList extends MetaBase {
           id,
           titles: [{ languageCode: 'english', title }],
           format: formatText as AnilistMediaFormat,
-          type: relationText.split('(')[0]?.trim() as string,
+          type: relationText.split('(')[0]?.trim().toUpperCase() as string,
         })
       }
     })

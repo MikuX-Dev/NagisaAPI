@@ -21,6 +21,7 @@ export const info = pgTable(
       .primaryKey()
       .$defaultFn(() => nanoid()),
     slug: text('slug').notNull(),
+    title: text('string').notNull(),
     externalIds: jsonb('external_ids').$type<{ [x: string]: string }>(),
     titles: jsonb('titles')
       .notNull()
@@ -30,6 +31,7 @@ export const info = pgTable(
     bannerImage: text('banner_image'),
     logoImage: text('logo_image'),
     color: text('color'),
+    coverColor: text('cover_color'),
     description: text('description'),
     airDate: jsonb('air_date').$type<{
       start: {

@@ -44,6 +44,12 @@ export interface ProviderInfo {
   tags?: ITag[]
   createdAt: number
   updatedAt: number
+
+  ratelimit?: {
+    retryAfter: number | null
+    limit: number | null
+    remaining: number | null
+  }
 }
 
 export interface ProviderEpisode {
@@ -130,6 +136,7 @@ export type FribbAnime = {
   simkl_id?: number
   themoviedb_id?: number
   tvdb_id?: number
+  animenewsnetwork_id?: number
   season?: {
     tvdb?: number
     tmdb?: number

@@ -62,7 +62,7 @@ class TheMovieDB extends MetaBase {
     }
   }
 
-  private async getSeasons(fribbAnime: FribbAnime) {
+  public async getSeasons(fribbAnime: FribbAnime) {
     const type = fribbAnime.type?.toLowerCase() === 'movie' ? 'movie' : 'tv'
     const API_KEY = process.env.TMDB_API_KEY
 
@@ -454,12 +454,14 @@ class TheMovieDB extends MetaBase {
         ) || []
       const artworksData = await artworksResponse.json<TMDBImagesResponse>()
 
-      function getLogo(
+      function getBestImage(
         logos: TMDBImage[],
-        language_iso: 'en' | 'jp' = 'en',
+        language_iso: 'en' | 'jp' | null = null,
         dimension: { width: number; height: number } | 'smallest' = 'smallest',
       ): TMDBImage | null {
-        const filtered = logos.filter((l) => l.iso_639_1 === language_iso)
+        const filtered = language_iso
+          ? logos.filter((l) => l.iso_639_1 === language_iso)
+          : logos
 
         if (filtered.length === 0) return null
 
@@ -484,17 +486,35 @@ class TheMovieDB extends MetaBase {
         }
       }
 
-      const logoImagePath = getLogo(artworksData.logos, 'en', {
+      const logoImagePath = getBestImage(artworksData.logos, 'en', {
         height: 300,
         width: 400,
+      })?.file_path
+      const bannerImagePath = getBestImage(artworksData.backdrops, null, {
+        width: 3840,
+        height: 2180,
+      })?.file_path
+      const coverImagePath = getBestImage(artworksData.posters, 'en', {
+        width: 2000,
+        height: 3000,
       })?.file_path
 
       const artwork = await this.getArtwork(anime)
 
-      const logoImage = `https://image.tmdb.org/t/p/original/${logoImagePath}`
+      const logoImage = logoImagePath
+        ? `https://image.tmdb.org/t/p/original${logoImagePath}`
+        : null
+      const bannerImage = bannerImagePath
+        ? `https://image.tmdb.org/t/p/original${bannerImagePath}`
+        : null
+      const coverImage = coverImagePath
+        ? `https://image.tmdb.org/t/p/original${coverImagePath}`
+        : null
 
       return {
         logoImage,
+        bannerImage,
+        coverImage,
         genres,
         tags: keywords,
         titles: [
