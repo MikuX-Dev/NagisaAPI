@@ -1,4 +1,4 @@
-import { Anime } from "@crysoline/lib";
+import { Anime } from '@crysoline/lib'
 import type {
   CrysolineProviderEpisode,
   ProviderInfo,
@@ -8,11 +8,11 @@ import type {
 import { AnimeBase } from '../base/anime'
 
 class Yuuka extends AnimeBase {
-  override name: string = 'yuuka';
-  override url = "https://animepahe.si";
-  override providerType: ('H-SUB' | 'SUB' | 'DUB')[] = ['H-SUB', 'DUB'];
+  override name: string = 'yuuka'
+  override url = 'https://animepahe.si'
+  override providerType: ('H-SUB' | 'SUB' | 'DUB')[] = ['H-SUB', 'DUB']
 
-  private provider = Anime.AnimePahe(this.apiKey);
+  private provider = Anime.AnimePahe(this.apiKey)
 
   override async search(query: string): Promise<ProviderSearch[] | undefined> {
     try {
@@ -101,6 +101,4 @@ class Yuuka extends AnimeBase {
 
     return sources
   }
-
-
 }
