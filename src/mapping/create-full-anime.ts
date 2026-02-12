@@ -302,7 +302,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     const tmdbCoverImage = seasons?.closestSeason?.poster_path
       ? `https://image.tmdb.org/t/p/original${seasons?.closestSeason?.poster_path}`
       : null
-      
+
     coverImage =
       tmdbCoverImage ??
       data.anilist?.coverImage ??
@@ -449,20 +449,20 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
     },
     {
       name: 'miyu',
-      instance: new Miyu()
+      instance: new Miyu(),
     },
     {
       name: 'aoi',
-      instance: new Aoi()
+      instance: new Aoi(),
     },
     {
       name: 'yuuka',
-      instance: new Yuuka()
+      instance: new Yuuka(),
     },
     {
       name: 'maki',
-      instance: new Maki()
-    }
+      instance: new Maki(),
+    },
   ]
 
   const anilist = new Anilist()
