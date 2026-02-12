@@ -6,7 +6,6 @@ import Anidb from '../providers/meta/anidb'
 import Anilist from '../providers/meta/anilist'
 import Kitsu from '../providers/meta/kitsu'
 import MyAnimeList from '../providers/meta/mal'
-import Nagisa from '../providers/anime/nagisa-animekai'
 import Simkl from '../providers/meta/simkl'
 import TheMovieDB from '../providers/meta/tmdb'
 import TheTVDB from '../providers/meta/tvdb'
@@ -40,9 +39,15 @@ import { getDominantColor } from '../helper/get-color'
 
 import { FindBestMatchByTitles } from './helpers/find-best-match'
 import { cleanTitle } from './helpers/sanitize-title'
+import { getFillerEpisodes } from '../providers/utils/filler-list'
+
+import Nagisa from '../providers/anime/nagisa-animekai'
 import Miyako from '../providers/anime/miyako-anizone'
 import Toki from '../providers/anime/toki-zencloud'
-import { getFillerEpisodes } from '../providers/utils/filler-list'
+import Miyu from '../providers/anime/miyu-anidap'
+import Aoi from '../providers/anime/aoi-animeparadise'
+import Yuuka from '../providers/anime/yuuka-animepahe'
+import Maki from '../providers/anime/maki-anicore'
 
 export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const providers = {
@@ -297,6 +302,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
     const tmdbCoverImage = seasons?.closestSeason?.poster_path
       ? `https://image.tmdb.org/t/p/original${seasons?.closestSeason?.poster_path}`
       : null
+      
     coverImage =
       tmdbCoverImage ??
       data.anilist?.coverImage ??
@@ -441,6 +447,22 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
       name: 'toki',
       instance: new Toki(),
     },
+    {
+      name: 'miyu',
+      instance: new Miyu()
+    },
+    {
+      name: 'aoi',
+      instance: new Aoi()
+    },
+    {
+      name: 'yuuka',
+      instance: new Yuuka()
+    },
+    {
+      name: 'maki',
+      instance: new Maki()
+    }
   ]
 
   const anilist = new Anilist()

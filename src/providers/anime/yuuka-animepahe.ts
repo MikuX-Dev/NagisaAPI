@@ -102,3 +102,5 @@ class Yuuka extends AnimeBase {
     return sources
   }
 }
+
+export default Yuuka
