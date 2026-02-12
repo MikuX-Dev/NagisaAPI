@@ -48,6 +48,7 @@ import Miyu from '../providers/anime/miyu-anidap'
 import Aoi from '../providers/anime/aoi-animeparadise'
 import Yuuka from '../providers/anime/yuuka-animepahe'
 import Maki from '../providers/anime/maki-anicore'
+import Eimi from '../providers/anime/eimi-animeheaven'
 
 export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const providers = {
@@ -438,6 +439,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   }
 
   const streamingProviders = [
+    { name: 'eimi', instance: new Eimi() },
     { name: 'nagisa', instance: new Nagisa() },
     {
       name: 'miyako',
