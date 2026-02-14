@@ -5,15 +5,47 @@ import { getAnimeFromAnilistIds } from '../database/functions'
 import { getBestScore, getPopular, getTrending } from '../helper/get-spot'
 import { trendingQueue } from '../queue'
 import { createSuccessResponse } from '../helper/response'
+import { redis } from '../database/cache'
+
+const CACHE_TTL = 12 * 60 * 60
+
+interface CacheParams {
+  limit?: number
+  offset?: number
+}
+
+const getCacheKey = (prefix: string, params: CacheParams): string => {
+  return `anilist:${prefix}:${params.limit ?? 'default'}:${params.offset ?? 'default'}`
+}
+
+const getCachedOrFetch = async <T>(
+  cacheKey: string,
+  fetchFn: () => Promise<T>,
+): Promise<T> => {
+  const cached = await redis.get(cacheKey)
+  if (cached) {
+    return JSON.parse(cached) as T
+  }
+
+  const freshData = await fetchFn()
+  await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(freshData))
+
+  return freshData
+}
 
 const picksRoutes = new Elysia({ prefix: '/picks' })
   .get(
     '/trending',
     async ({ query }) => {
-      const anilistTrendingIds = await getTrending({
-        limit: query.limit,
-        offset: query.offset,
-      })
+      const cacheKey = getCacheKey('trending', query)
+
+      const anilistTrendingIds = await getCachedOrFetch(cacheKey, () =>
+        getTrending({
+          limit: query.limit,
+          offset: query.offset,
+        }),
+      )
+
       const trendingAnimes = await getAnimeFromAnilistIds(anilistTrendingIds)
 
       await trendingQueue.add('trending-add', {
@@ -32,10 +64,15 @@ const picksRoutes = new Elysia({ prefix: '/picks' })
   .get(
     '/all-time-popular',
     async ({ query }) => {
-      const anilistPopularIds = await getPopular({
-        limit: query.limit,
-        offset: query.offset,
-      })
+      const cacheKey = getCacheKey('popular', query)
+
+      const anilistPopularIds = await getCachedOrFetch(cacheKey, () =>
+        getPopular({
+          limit: query.limit,
+          offset: query.offset,
+        }),
+      )
+
       const popularAnimes = await getAnimeFromAnilistIds(anilistPopularIds)
 
       await trendingQueue.add('popular-add', {
@@ -54,10 +91,15 @@ const picksRoutes = new Elysia({ prefix: '/picks' })
   .get(
     '/best-score',
     async ({ query }) => {
-      const anilistBestScoreIds = await getBestScore({
-        limit: query.limit,
-        offset: query.offset,
-      })
+      const cacheKey = getCacheKey('bestscore', query)
+
+      const anilistBestScoreIds = await getCachedOrFetch(cacheKey, () =>
+        getBestScore({
+          limit: query.limit,
+          offset: query.offset,
+        }),
+      )
+
       const bestScoresAnimes = await getAnimeFromAnilistIds(anilistBestScoreIds)
 
       await trendingQueue.add('bestscore-add', {
