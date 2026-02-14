@@ -273,7 +273,7 @@ class TheMovieDB extends MetaBase {
 
               return {
                 ...ep,
-                image: `https://image.tmdb.org/t/p/w500${ep.still_path}`,
+                image: `https://image.tmdb.org/t/p/original${ep.still_path}`,
                 translations,
                 isCurrentEpisode: index + 1 === alResponse.currentEpisode,
               }
