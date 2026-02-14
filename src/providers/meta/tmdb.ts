@@ -273,7 +273,9 @@ class TheMovieDB extends MetaBase {
 
               return {
                 ...ep,
-                image: `https://image.tmdb.org/t/p/original${ep.still_path}`,
+                image: ep.still_path
+                  ? `https://image.tmdb.org/t/p/original${ep.still_path}`
+                  : null,
                 translations,
                 isCurrentEpisode: index + 1 === alResponse.currentEpisode,
               }
@@ -674,7 +676,7 @@ export interface EpisodeTranslationsResponse {
 
 export interface EpisodeWithEnhancements
   extends Omit<TMDBEpisode, 'still_path'> {
-  image: string
+  image: string | null
   still_path: string | undefined
   translations: EpisodeTranslation[]
   isCurrentEpisode: boolean
