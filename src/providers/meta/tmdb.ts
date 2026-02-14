@@ -62,6 +62,11 @@ class TheMovieDB extends MetaBase {
     }
   }
 
+  // We need to make this function smarter.
+  // TMDB Season.season_number = 0 is specials or we can get the special season by the name Specials.
+  // OVA, ONA, SPECIAL from anilist are placed in "Specials" or season_number = 0 in tmdb.
+  // So we need to fix our function so if anilist === special/ona/ova we do not filter out the specials season or season.season_number=0 and filter out the rest but if anilist !== special/ona/ova we filter the specials.
+  // Anilist format from getInfo() are: "tv show" | "ova" | "ona" | "special" | "movie"
   public async getSeasons(fribbAnime: FribbAnime) {
     const type = fribbAnime.type?.toLowerCase() === 'movie' ? 'movie' : 'tv'
     const API_KEY = process.env.TMDB_API_KEY
@@ -84,6 +89,10 @@ class TheMovieDB extends MetaBase {
     }
 
     const tmdbData = (await tmdbResponse.json()) as TMDBInfo
+    const alType = alResponse.format?.toLowerCase() // "tv show" | "ova" | "ona" | "special" | "movie"
+    const isAniListSpecial = ['ova', 'ona', 'special'].includes(
+      alType as string,
+    )
 
     if (
       type === 'movie' ||
@@ -99,6 +108,13 @@ class TheMovieDB extends MetaBase {
       } as RegularResponse
     }
 
+    // Logic for Specials:
+    // If AniList is OVA/ONA/Special, we ONLY want season 0.
+    // Otherwise, we want everything EXCEPT season 0.
+    const filteredSeasonsForProcessing = tmdbData.seasons.filter((s) =>
+      isAniListSpecial ? s.season_number === 0 : s.season_number !== 0,
+    )
+
     const isLongRunning = alResponse.totalEpisodes
       ? alResponse.totalEpisodes > 50
       : false
@@ -107,7 +123,7 @@ class TheMovieDB extends MetaBase {
       return {
         ...tmdbData,
         isLongRunning: true,
-        allSeasons: tmdbData.seasons,
+        allSeasons: filteredSeasonsForProcessing, // Only return the relevant seasons
       } as LongRunningResponse
     }
 
@@ -115,21 +131,21 @@ class TheMovieDB extends MetaBase {
     if (!anilistDate) {
       return {
         ...tmdbData,
-        allSeasons: tmdbData.seasons,
+        allSeasons: filteredSeasonsForProcessing,
         isLongRunning: false,
         closestSeason: undefined,
         closestSeasonNumber: undefined,
       } as RegularResponse
     }
 
-    const validSeasons = tmdbData.seasons.filter(
+    const validSeasons = filteredSeasonsForProcessing.filter(
       (season) => season.air_date && season.air_date.trim() !== '',
     )
 
     if (validSeasons.length === 0) {
       return {
         ...tmdbData,
-        allSeasons: tmdbData.seasons,
+        allSeasons: filteredSeasonsForProcessing,
         isLongRunning: false,
         closestSeason: undefined,
         closestSeasonNumber: undefined,
@@ -155,7 +171,7 @@ class TheMovieDB extends MetaBase {
       closestSeason,
       closestSeasonNumber: closestSeason?.season_number,
       isLongRunning: false,
-      allSeasons: tmdbData.seasons,
+      allSeasons: filteredSeasonsForProcessing,
     } as RegularResponse
   }
 
@@ -175,10 +191,7 @@ class TheMovieDB extends MetaBase {
 
     if (type === 'movie') {
       const alResponse = await this.anilist.getInfo(fribbAnime)
-      if (!alResponse) {
-        return undefined
-      }
-
+      if (!alResponse) return undefined
       return {
         episodes: [] as EpisodeWithEnhancements[],
         totalEpisodes: 1,
@@ -212,13 +225,13 @@ class TheMovieDB extends MetaBase {
     }
 
     const effectiveEndDate = endDate || new Date()
-
     let allEpisodes: TMDBEpisode[] = []
 
     try {
-      const seasonPromises = seasonsData.allSeasons
-        .filter((season) => season.season_number !== 0)
-        .map(async (season): Promise<TMDBEpisode[]> => {
+      // We no longer hard-filter season_number !== 0 here
+      // because getSeasons() already filtered the correct seasons for us.
+      const seasonPromises = seasonsData.allSeasons.map(
+        async (season): Promise<TMDBEpisode[]> => {
           const response = await this.client.get(
             `${type}/${fribbAnime.themoviedb_id}/season/${season.season_number}?language=en-US`,
           )
@@ -227,21 +240,16 @@ class TheMovieDB extends MetaBase {
 
           const seasonDetails = await response.json<TMDBSeasonDetails>()
           return seasonDetails.episodes || []
-        })
+        },
+      )
 
       const seasonsEpisodes = await Promise.all(seasonPromises)
       allEpisodes = seasonsEpisodes.flat()
 
       const filteredEpisodes = allEpisodes.filter((episode) => {
         if (!episode.air_date) return false
-
         const episodeDate = new Date(episode.air_date)
-        if (!episodeDate) return false
-
-        const isWithinStartRange = episodeDate >= startDate
-        const isWithinEndRange = episodeDate <= effectiveEndDate
-
-        return isWithinStartRange && isWithinEndRange
+        return episodeDate >= startDate && episodeDate <= effectiveEndDate
       })
 
       const sortedEpisodes = filteredEpisodes.sort((a, b) => {
@@ -263,15 +271,11 @@ class TheMovieDB extends MetaBase {
                 ),
               ])
 
-              const episodeIndex = index + 1
-              const isCurrentEpisode =
-                episodeIndex === alResponse.currentEpisode
-
               return {
                 ...ep,
                 image: `https://image.tmdb.org/t/p/w500${ep.still_path}`,
                 translations,
-                isCurrentEpisode,
+                isCurrentEpisode: index + 1 === alResponse.currentEpisode,
               }
             }
             return {
@@ -289,8 +293,10 @@ class TheMovieDB extends MetaBase {
         isLongRunning: seasonsData.isLongRunning,
         currentEpisode: alResponse.currentEpisode ?? 0,
         dateRange: {
-          startDate: this.parseDate(alResponse.airDate?.start).toISOString(),
-          endDate: this.parseDate(alResponse.airDate?.end).toISOString(),
+          startDate: startDate.toISOString(),
+          endDate: endDate
+            ? endDate.toISOString()
+            : effectiveEndDate.toISOString(),
           effectiveEndDate: effectiveEndDate
             .toISOString()
             .split('T')[0] as string,
@@ -780,3 +786,26 @@ export interface TMDBInfoResponse {
   networks?: TMDBNetwork[]
   genres: TMDBGenre[]
 }
+
+// const tmdb = new TheMovieDB();
+// console.dir(await tmdb.getSeasons(
+// {
+//   "type" : "TV",
+//   "anidb_id" : 17947,
+//   "anilist_id" : 163134,
+//   "animecountdown_id" : 2125704,
+//   "anime-planet_id" : "rezero-starting-life-in-another-world-season-3",
+//   "anisearch_id" : 18302,
+//   "imdb_id" : "tt5607616",
+//   "kitsu_id" : 47235,
+//   "livechart_id" : 11908,
+//   "mal_id" : 54857,
+//   "simkl_id" : 2125704,
+//   "themoviedb_id" : 65942,
+//   "tvdb_id" : 305089,
+//   "season" : {
+//     "tvdb" : 3,
+//     "tmdb" : 3
+//   }
+// }
+// ), { depth: null })

@@ -49,6 +49,13 @@ import Aoi from '../providers/anime/aoi-animeparadise'
 import Yuuka from '../providers/anime/yuuka-animepahe'
 import Maki from '../providers/anime/maki-anicore'
 import Eimi from '../providers/anime/eimi-animeheaven'
+import Akari from '../providers/anime/akari-aniliberty'
+import Haruka from '../providers/anime/haruka-animeonsen'
+import Hiyori from '../providers/anime/hiyori-animegg'
+import Kaede from '../providers/anime/kaede-animex'
+import type { AnimeBase } from '../providers/base/anime'
+import Misaki from '../providers/anime/misaki-hianime'
+import Rin from '../providers/anime/rin-kickassanime'
 
 export const getMap = async (anime: FribbAnime): Promise<Info> => {
   const providers = {
@@ -300,16 +307,27 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
 
   if (hasPrequelRelation) {
     const seasons = await providers.tmdb.getSeasons(anime)
-    const tmdbCoverImage = seasons?.closestSeason?.poster_path
-      ? `https://image.tmdb.org/t/p/original${seasons?.closestSeason?.poster_path}`
-      : null
+    const closestSeason = seasons?.closestSeason
+    const seasonNumber = closestSeason?.season_number
+    // If there is a prequel in anilist (meaning it had previous season), its dumb to use season 1 or special season cover image.
+    if (!seasonNumber || seasonNumber <= 1) {
+      coverImage =
+        data.anilist?.coverImage ??
+        data.mal?.coverImage ??
+        data.tvdb?.coverImage ??
+        null
+    } else {
+      const tmdbCoverImage = closestSeason?.poster_path
+        ? `https://image.tmdb.org/t/p/original${closestSeason?.poster_path}`
+        : null
 
-    coverImage =
-      tmdbCoverImage ??
-      data.anilist?.coverImage ??
-      data.mal?.coverImage ??
-      data.tvdb?.coverImage ??
-      null
+      coverImage =
+        tmdbCoverImage ??
+        data.anilist?.coverImage ??
+        data.mal?.coverImage ??
+        data.tvdb?.coverImage ??
+        null
+    }
   } else {
     coverImage =
       data.tmdb?.coverImage ??
@@ -438,7 +456,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
     fillers = await getFillerEpisodes(anime.anilist_id.toString())
   }
 
-  const streamingProviders = [
+  const streamingProviders: { name: string; instance: AnimeBase }[] = [
     { name: 'eimi', instance: new Eimi() },
     { name: 'nagisa', instance: new Nagisa() },
     {
@@ -464,6 +482,30 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
     {
       name: 'maki',
       instance: new Maki(),
+    },
+    {
+      name: 'akari',
+      instance: new Akari(),
+    },
+    {
+      name: 'haruka',
+      instance: new Haruka(),
+    },
+    {
+      name: 'hiyori',
+      instance: new Hiyori(),
+    },
+    {
+      name: 'kaede',
+      instance: new Kaede(),
+    },
+    {
+      name: 'misaki',
+      instance: new Misaki(),
+    },
+    {
+      name: 'rin',
+      instance: new Rin(),
     },
   ]
 
