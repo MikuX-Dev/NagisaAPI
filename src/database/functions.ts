@@ -235,6 +235,7 @@ export async function addEpisodes(
       target: [episode.infoId, episode.number],
       set: {
         titles: sql`EXCLUDED.titles`,
+        title: sql`EXCLUDED.title`,
         thumbnailImage: sql`EXCLUDED.thumbnail_image`,
         preview: sql`EXCLUDED.preview`,
         description: sql`EXCLUDED.description`,
