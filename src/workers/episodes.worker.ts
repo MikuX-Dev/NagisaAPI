@@ -112,6 +112,7 @@ const episodesWorker = new Worker<EpisodesUpdatePayload>(
     if (toInsert.length > 0) {
       const rows = toInsert.map((ep) => ({
         infoId,
+        title: ep.title,
         titles: ep.titles,
         thumbnailImage: ep.thumbnailImage,
         preview: ep.preview,
@@ -132,6 +133,7 @@ const episodesWorker = new Worker<EpisodesUpdatePayload>(
     for (const { episodeId, data } of toUpdate) {
       await updateEpisodes(episodeId, infoId, {
         titles: data.titles,
+        title: data.title,
         thumbnailImage: data.thumbnailImage,
         preview: data.preview,
         description: data.description,

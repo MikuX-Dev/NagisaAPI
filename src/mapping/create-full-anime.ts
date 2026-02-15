@@ -748,6 +748,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
 
         episodeMap.set(streamEp.number, {
           ...existing,
+          title,
           titles: mergeTitles(existing.titles, streamEpTitles),
           thumbnailImage:
             existing.thumbnailImage ?? streamEp.thumbnailImage ?? null,
