@@ -620,12 +620,9 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   const titleArray = allMetaEpisodes
     .map((metaEp) => ({
       title:
-        metaEp.titles?.find((title) => title.languageCode === 'english')
-          ?.title ||
-        metaEp.titles?.find((title) => title.languageCode === 'romaji')
-          ?.title ||
-        metaEp.titles?.find((title) => title.languageCode === 'japansese')
-          ?.title ||
+        metaEp.titles?.find((t) => t.languageCode === 'english')?.title ||
+        metaEp.titles?.find((t) => t.languageCode === 'romaji')?.title ||
+        metaEp.titles?.find((t) => t.languageCode === 'japansese')?.title ||
         null,
       number: metaEp.number,
     }))
@@ -636,10 +633,9 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
 
     const existing = episodeMap.get(metaEp.number)
     const title =
-      metaEp.titles?.find((title) => title.languageCode === 'english')?.title ||
-      metaEp.titles?.find((title) => title.languageCode === 'romaji')?.title ||
-      metaEp.titles?.find((title) => title.languageCode === 'japansese')
-        ?.title ||
+      metaEp.titles?.find((t) => t.languageCode === 'english')?.title ||
+      metaEp.titles?.find((t) => t.languageCode === 'romaji')?.title ||
+      metaEp.titles?.find((t) => t.languageCode === 'japansese')?.title ||
       null
 
     if (!existing) {
@@ -691,12 +687,9 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
         : null
 
       const title =
-        streamEpTitles?.find((title) => title.languageCode === 'english')
-          ?.title ||
-        streamEpTitles?.find((title) => title.languageCode === 'romaji')
-          ?.title ||
-        streamEpTitles?.find((title) => title.languageCode === 'japansese')
-          ?.title ||
+        streamEpTitles?.find((t) => t.languageCode === 'english')?.title ||
+        streamEpTitles?.find((t) => t.languageCode === 'romaji')?.title ||
+        streamEpTitles?.find((t) => t.languageCode === 'japansese')?.title ||
         null
 
       if (!existing) {
