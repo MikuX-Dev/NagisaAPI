@@ -618,7 +618,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   ]
 
   const titleArray = allMetaEpisodes
-    .map((metaEp, idx) => ({
+    .map((metaEp) => ({
       title:
         metaEp.titles?.find((title) => title.languageCode === 'english')
           ?.title ||
@@ -627,7 +627,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
         metaEp.titles?.find((title) => title.languageCode === 'japansese')
           ?.title ||
         null,
-      number: idx + 1,
+      number: metaEp.number,
     }))
     .filter(Boolean)
 
