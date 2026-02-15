@@ -136,7 +136,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
     async ({ params, query, set }) => {
       try {
         const { id } = params
-        const { limit, offset, orderBy, airedOnly, fresh } = query
+        const { limit, offset, orderBy, airedOnly, fresh, readd } = query
 
         const cacheKey = getRedisKey(
           'episodes',
@@ -156,7 +156,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
 
         await episodesQueue.add(
           JOB_REFRESH_EPISODES,
-          { infoId: id },
+          { infoId: id, readd },
           {
             jobId: `episodes-refresh-${id}`,
           },
@@ -206,6 +206,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           z.boolean().optional().default(true),
         ),
         fresh: z.preprocess((val) => Boolean(val), z.boolean().optional()),
+                readd: z.preprocess((val) => Boolean(val), z.boolean().optional()),
       }),
     },
   )

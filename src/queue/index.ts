@@ -68,4 +68,5 @@ export interface TrendingAddPayload {
 
 export interface EpisodesUpdatePayload {
   infoId: string
+  readd: boolean
 }

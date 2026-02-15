@@ -1,5 +1,8 @@
 import { Worker, type Job } from 'bullmq'
 import { redis as redisConnection } from '../database/cache'
+import { db } from '../database/db'
+import { eq } from 'drizzle-orm'
+import { episode } from '../database/schema'
 
 import {
   getEpisodes as getDBEpisodes,
@@ -14,7 +17,7 @@ import { getSingleFribbAnime } from '../crawler/fribb'
 const episodesWorker = new Worker<EpisodesUpdatePayload>(
   QUEUE_EPISODES,
   async (job: Job<EpisodesUpdatePayload>) => {
-    const { infoId } = job.data
+    const { infoId, readd } = job.data
 
     job.log(`Starting episodes refresh for anime ${infoId}`)
 
@@ -38,6 +41,34 @@ const episodesWorker = new Worker<EpisodesUpdatePayload>(
     }
 
     const freshEpisodes = await scrapeEpisodes(singleFribb)
+
+    if (readd) {
+      const deletedCount = await db
+        .delete(episode)
+        .where(eq(episode.infoId, infoId))
+
+      job.log(`Deleted ${deletedCount.rowCount || 0} existing episodes for re-add.`)
+
+      const rows = freshEpisodes.map((ep) => ({
+        infoId,
+        titles: ep.titles,
+        thumbnailImage: ep.thumbnailImage,
+        preview: ep.preview,
+        description: ep.description,
+        number: ep.number,
+        rating: ep.rating,
+        filler: ep.filler,
+        recap: ep.recap,
+        runtime: ep.runtime,
+        ago: ep.ago,
+        providers: ep.providers,
+      }))
+
+      await addEpisodes(rows)
+      job.log(`Re-added ${freshEpisodes.length} episodes.`)
+      job.log(`Episodes re-add for anime ${infoId} complete.`)
+      return { inserted: freshEpisodes.length, updated: 0, deleted: deletedCount.rowCount || 0 }
+    }
 
     const existingEpisodes = await getDBEpisodes(infoId, { limit: 10_000 })
 
