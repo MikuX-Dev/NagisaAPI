@@ -47,11 +47,14 @@ const episodesWorker = new Worker<EpisodesUpdatePayload>(
         .delete(episode)
         .where(eq(episode.infoId, infoId))
 
-      job.log(`Deleted ${deletedCount.rowCount || 0} existing episodes for re-add.`)
+      job.log(
+        `Deleted ${deletedCount.rowCount || 0} existing episodes for re-add.`,
+      )
 
       const rows = freshEpisodes.map((ep) => ({
         infoId,
         titles: ep.titles,
+        title: ep.title,
         thumbnailImage: ep.thumbnailImage,
         preview: ep.preview,
         description: ep.description,
@@ -67,7 +70,11 @@ const episodesWorker = new Worker<EpisodesUpdatePayload>(
       await addEpisodes(rows)
       job.log(`Re-added ${freshEpisodes.length} episodes.`)
       job.log(`Episodes re-add for anime ${infoId} complete.`)
-      return { inserted: freshEpisodes.length, updated: 0, deleted: deletedCount.rowCount || 0 }
+      return {
+        inserted: freshEpisodes.length,
+        updated: 0,
+        deleted: deletedCount.rowCount || 0,
+      }
     }
 
     const existingEpisodes = await getDBEpisodes(infoId, { limit: 10_000 })

@@ -226,6 +226,7 @@ export const episode = pgTable(
     infoId: text('info_id')
       .notNull()
       .references(() => info.id, { onDelete: 'cascade' }),
+    title: text('string'),
     titles: jsonb('titles').$type<Array<{
       languageCode: string
       title: string | null

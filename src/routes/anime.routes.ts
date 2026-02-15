@@ -206,7 +206,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           z.boolean().optional().default(true),
         ),
         fresh: z.preprocess((val) => Boolean(val), z.boolean().optional()),
-                readd: z.preprocess((val) => Boolean(val), z.boolean().optional()),
+        readd: z.preprocess((val) => Boolean(val), z.boolean().optional()),
       }),
     },
   )

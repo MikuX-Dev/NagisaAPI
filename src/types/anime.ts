@@ -133,6 +133,7 @@ export interface Info {
 
 export interface Episode {
   id: string | null
+  title: string | null
   titles: ITitle[] | null
   thumbnailImage: string | null
   preview: string | null

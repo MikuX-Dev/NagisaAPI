@@ -621,9 +621,17 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
     if (metaEp.number === undefined) return
 
     const existing = episodeMap.get(metaEp.number)
+    const title =
+      metaEp.titles?.find((title) => title.languageCode === 'english')?.title ||
+      metaEp.titles?.find((title) => title.languageCode === 'romaji')?.title ||
+      metaEp.titles?.find((title) => title.languageCode === 'japansese')
+        ?.title ||
+      null
+
     if (!existing) {
       episodeMap.set(metaEp.number, {
         id: nanoid().toString(),
+        title,
         titles: metaEp.titles ?? null,
         thumbnailImage: metaEp.thumbnailImage ?? null,
         preview: metaEp.preview ?? null,
@@ -641,6 +649,7 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
     } else {
       episodeMap.set(metaEp.number, {
         ...existing,
+        title,
         titles: mergeTitles(existing.titles, metaEp.titles ?? null),
         thumbnailImage:
           existing.thumbnailImage ?? metaEp.thumbnailImage ?? null,
@@ -667,9 +676,19 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
         ? [{ languageCode: 'english', title: streamEp.title }]
         : null
 
+      const title =
+        streamEpTitles?.find((title) => title.languageCode === 'english')
+          ?.title ||
+        streamEpTitles?.find((title) => title.languageCode === 'romaji')
+          ?.title ||
+        streamEpTitles?.find((title) => title.languageCode === 'japansese')
+          ?.title ||
+        null
+
       if (!existing) {
         episodeMap.set(streamEp.number, {
           id: nanoid().toString(),
+          title,
           titles: streamEpTitles,
           thumbnailImage: streamEp.thumbnailImage ?? null,
           preview: streamEp.preview ?? null,
