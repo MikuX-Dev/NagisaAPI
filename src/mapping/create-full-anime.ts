@@ -617,6 +617,20 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
     ...(metaData.mal ?? []),
   ]
 
+  const titleArray = allMetaEpisodes
+    .map((metaEp, idx) => ({
+      title:
+        metaEp.titles?.find((title) => title.languageCode === 'english')
+          ?.title ||
+        metaEp.titles?.find((title) => title.languageCode === 'romaji')
+          ?.title ||
+        metaEp.titles?.find((title) => title.languageCode === 'japansese')
+          ?.title ||
+        null,
+      number: idx + 1,
+    }))
+    .filter(Boolean)
+
   allMetaEpisodes.forEach((metaEp) => {
     if (metaEp.number === undefined) return
 
@@ -754,7 +768,9 @@ export const getEpisodes = async (anime: FribbAnime): Promise<Episode[]> => {
   )
 
   for (const episode of results) {
+    const currentTitleObj = titleArray.find((t) => t.number === episode.number)
     episode.filler = fillers.includes(episode.number)
+    episode.title = currentTitleObj?.title || null
   }
 
   return results
