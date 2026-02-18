@@ -12,13 +12,16 @@ const CACHE_TTL = 12 * 60 * 60
 interface CacheParams {
   limit?: number
   offset?: number
-  fresh?: boolean 
+  fresh?: boolean
 }
 
 const querySchema = z.object({
   limit: z.preprocess((val) => Number(val), z.number().optional()),
   offset: z.preprocess((val) => Number(val), z.number().optional()),
-  fresh: z.preprocess((val) => val === 'true' || val === true, z.boolean().optional()),
+  fresh: z.preprocess(
+    (val) => val === 'true' || val === true,
+    z.boolean().optional(),
+  ),
 })
 
 const getCacheKey = (prefix: string, params: CacheParams): string => {
@@ -54,7 +57,7 @@ const picksRoutes = new Elysia({ prefix: '/picks' })
       const anilistTrendingIds = await getCachedOrFetch(
         cacheKey,
         () => getTrending({ limit: query.limit, offset: query.offset }),
-        query.fresh
+        query.fresh,
       )
 
       const trendingAnimes = await getAnimeFromAnilistIds(anilistTrendingIds)
@@ -75,7 +78,7 @@ const picksRoutes = new Elysia({ prefix: '/picks' })
       const anilistPopularIds = await getCachedOrFetch(
         cacheKey,
         () => getPopular({ limit: query.limit, offset: query.offset }),
-        query.fresh
+        query.fresh,
       )
 
       const popularAnimes = await getAnimeFromAnilistIds(anilistPopularIds)
@@ -96,7 +99,7 @@ const picksRoutes = new Elysia({ prefix: '/picks' })
       const anilistBestScoreIds = await getCachedOrFetch(
         cacheKey,
         () => getBestScore({ limit: query.limit, offset: query.offset }),
-        query.fresh
+        query.fresh,
       )
 
       const bestScoresAnimes = await getAnimeFromAnilistIds(anilistBestScoreIds)

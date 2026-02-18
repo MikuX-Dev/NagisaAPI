@@ -29,6 +29,17 @@ import {
   JOB_REFRESH_ANIME,
   JOB_REFRESH_EPISODES,
 } from '../queue'
+import Akari from '../providers/anime/akari-aniliberty'
+import Aoi from '../providers/anime/aoi-animeparadise'
+import Eimi from '../providers/anime/eimi-animeheaven'
+import Haruka from '../providers/anime/haruka-animeonsen'
+import Hiyori from '../providers/anime/hiyori-animegg'
+import Kaede from '../providers/anime/kaede-animex'
+import Maki from '../providers/anime/maki-anicore'
+import Misaki from '../providers/anime/misaki-hianime'
+import Miyu from '../providers/anime/miyu-anidap'
+import Rin from '../providers/anime/rin-kickassanime'
+import Yuuka from '../providers/anime/yuuka-animepahe'
 
 const CACHE_TTL = 60 * 60
 
@@ -213,7 +224,22 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
   .get(
     '/:id/episodes/:number',
     async ({ params, query, set }) => {
-      const providers = [new Nagisa(), new Miyako(), new Toki()] as AnimeBase[]
+      const providers = [
+        new Nagisa(),
+        new Miyako(),
+        new Toki(),
+        new Akari(),
+        new Aoi(),
+        new Eimi(),
+        new Haruka(),
+        new Hiyori(),
+        new Kaede(),
+        new Maki(),
+        new Misaki(),
+        new Miyu(),
+        new Rin(),
+        new Yuuka(),
+      ] as AnimeBase[]
 
       const { server, subType } = query
       const { id, number } = params
