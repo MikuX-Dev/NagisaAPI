@@ -49,8 +49,11 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
     async ({ params, query, set }) => {
       try {
         const { id } = params
-        const { anilistRefresh, fresh } = query
-        const cacheKey = getRedisKey('anime', id)
+        const { anilistRefresh, fresh, episodes: useEpisodes } = query
+        const cacheKey = getRedisKey(
+          'anime',
+          `${id}-${useEpisodes ? 'with-episodes' : 'no-episodes'}`,
+        )
 
         const cached = await redis.get(cacheKey)
         if (cached && !fresh) {
@@ -69,7 +72,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
 
         const info = {
           ...anime,
-          episodes,
+          episodes: useEpisodes ? episodes : [],
         }
 
         await redis.set(cacheKey, JSON.stringify(info), 'EX', CACHE_TTL)
@@ -139,6 +142,7 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
           z.boolean().optional(),
         ),
         fresh: z.preprocess((val) => Boolean(val), z.boolean().optional()),
+        episodes: z.preprocess((val) => Boolean(val), z.boolean().optional()),
       }),
     },
   )
