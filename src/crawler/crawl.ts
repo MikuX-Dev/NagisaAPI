@@ -1,4 +1,8 @@
-import { addInfo, addEpisodes, getAllAnilistIds } from '../database/functions'
+import {
+  addInfo,
+  addEpisodes,
+  getAllAnimeFingerprints,
+} from '../database/functions'
 import { getMap, getEpisodes } from '../mapping/create-full-anime'
 import type { FribbAnime } from '../types/provider'
 import { getFribbList } from './fribb'
@@ -74,6 +78,14 @@ export const startCrawl = async () => {
     )
 
     if (!anime) continue
+
+    if (!anime.anilist_id && !anime.mal_id && !anime.kitsu_id) {
+      console.warn(
+        `   ⚠️ Skipping [${i + 1}/${list.length}]: missing all fundamental IDs (anilist, mal, kitsu).`,
+      )
+      continue
+    }
+
     console.log(
       `\n[${i + 1}/${list.length}] Processing Anime. Anilist: ${anime?.anilist_id}`,
     )
@@ -263,14 +275,25 @@ export const checkForUpdates = async () => {
 
   const fullList = await getFribbList()
   if (!fullList) return
+  const existingFingerprints = await getAllAnimeFingerprints()
 
-  const existingIds = await getAllAnilistIds()
-  const existingSet = new Set(existingIds)
+  const isKnown = (anime: FribbAnime): boolean => {
+    if (
+      anime.anilist_id &&
+      existingFingerprints.has(`anilist:${anime.anilist_id}`)
+    )
+      return true
+    if (anime.mal_id && existingFingerprints.has(`mal:${anime.mal_id}`))
+      return true
+    if (anime.kitsu_id && existingFingerprints.has(`kitsu:${anime.kitsu_id}`))
+      return true
+    return false
+  }
 
   const missingAnime = fullList.filter(
-    (anime) => !existingSet.has(Number(anime.anilist_id)),
+    (anime) =>
+      !isKnown(anime) && (anime.anilist_id || anime.mal_id || anime.kitsu_id),
   )
-
   if (missingAnime.length === 0) {
     console.log('✅ Database is already up to date.')
     return

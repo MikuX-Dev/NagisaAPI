@@ -750,6 +750,30 @@ export async function nukeAllAnimeEpisodes(): Promise<number> {
   return deletedCount
 }
 
+export const getAllAnimeFingerprints = async (): Promise<Set<string>> => {
+  const rows = await db
+    .select({
+      anilistId: sql<string>`${info.externalIds}->>'anilistId'`,
+      malId: sql<string>`${info.externalIds}->>'malId'`,
+      kitsuId: sql<string>`${info.externalIds}->>'kitsuId'`,
+      slug: info.slug,
+      title: info.title,
+    })
+    .from(info)
+
+  const fingerprints = new Set<string>()
+
+  for (const row of rows) {
+    if (row.anilistId) fingerprints.add(`anilist:${row.anilistId}`)
+    if (row.malId) fingerprints.add(`mal:${row.malId}`)
+    if (row.kitsuId) fingerprints.add(`kitsu:${row.kitsuId}`)
+    if (row.slug) fingerprints.add(`slug:${row.slug.trim().toLowerCase()}`)
+    if (row.title) fingerprints.add(`title:${row.title.trim().toLowerCase()}`)
+  }
+
+  return fingerprints
+}
+
 // await Bun.write(
 //   'db-info.json',
 //   JSON.stringify(
