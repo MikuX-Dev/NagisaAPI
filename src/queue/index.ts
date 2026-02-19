@@ -42,6 +42,16 @@ export const crawlQueue = new Queue('anime-crawl', {
   connection: redisConnection,
 })
 
+export const dedupQueue = new Queue('anime-dedup', {
+  connection: redisConnection,
+  defaultJobOptions: {
+    attempts: 1,
+    backoff: { type: 'exponential', delay: 5_000 },
+    removeOnComplete: { age: 60 * 60 * 6 },
+    removeOnFail: { age: 60 * 60 * 24 },
+  },
+})
+
 const crawlerQueue = new Queue('anime-crawl', { connection: redisConnection })
 
 export const scheduleDailyUpdate = async () => {

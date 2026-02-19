@@ -774,6 +774,61 @@ export const getAllAnimeFingerprints = async (): Promise<Set<string>> => {
   return fingerprints
 }
 
+export const getAllInfoRows = async ({
+  limit = 500,
+  offset = 0,
+}: {
+  limit?: number
+  offset?: number
+}): Promise<
+  Array<{
+    id: string
+    anilistId: string | null
+    malId: string | null
+    kitsuId: string | null
+  }>
+> => {
+  const rows = await db
+    .select({
+      id: info.id,
+      anilistId: sql<string | null>`${info.externalIds}->>'anilistId'`,
+      malId: sql<string | null>`${info.externalIds}->>'malId'`,
+      kitsuId: sql<string | null>`${info.externalIds}->>'kitsuId'`,
+    })
+    .from(info)
+    .orderBy(asc(info.createdAt))
+    .limit(limit)
+    .offset(offset)
+
+  return rows
+}
+
+export const deleteEpisodesByInfoIds = async (
+  infoIds: string[],
+): Promise<number> => {
+  if (infoIds.length === 0) return 0
+
+  const result = await db
+    .delete(episode)
+    .where(inArray(episode.infoId, infoIds))
+
+  const deleted = result.rowCount ?? 0
+  console.log(
+    `🗑️  Deleted ${deleted} episodes for ${infoIds.length} info entries.`,
+  )
+  return deleted
+}
+
+export const deleteInfosByIds = async (infoIds: string[]): Promise<number> => {
+  if (infoIds.length === 0) return 0
+
+  const result = await db.delete(info).where(inArray(info.id, infoIds))
+
+  const deleted = result.rowCount ?? 0
+  console.log(`🗑️  Deleted ${deleted} info rows.`)
+  return deleted
+}
+
 // await Bun.write(
 //   'db-info.json',
 //   JSON.stringify(

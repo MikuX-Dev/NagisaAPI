@@ -4,7 +4,7 @@ import Elysia from 'elysia'
 
 import { redis } from './database/cache'
 import { apiRoutes } from './routes/api.routes'
-import { crawlQueue, scheduleDailyUpdate } from './queue'
+import { crawlQueue, dedupQueue, scheduleDailyUpdate } from './queue'
 // import { createSuccessResponse } from './helper/response'
 import { getAnimeCount } from './database/functions'
 await import('./workers/index')
@@ -22,6 +22,7 @@ const HOST = 'localhost'
 new Elysia()
   .use(cors())
   .onStart(async () => {
+    await dedupQueue.add('dedup-full', {})
     await scheduleDailyUpdate()
 
     const progressFile = path.join(process.cwd(), 'crawl-progress.json')
