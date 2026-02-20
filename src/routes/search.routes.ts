@@ -25,12 +25,14 @@ const searchRoutes = new Elysia({ prefix: '/search' })
     '/genre/:genreName',
     async ({ params, query }) => {
       const { genreName } = params
-      const { limit, offset } = query
+      const { limit, offset, orderDirection, orderBy } = query
 
       const results = await search({
         genreNames: genreName.split(','),
         limit,
         offset,
+        orderBy: orderBy || 'createdAt',
+        orderDirection: orderDirection || 'desc',
       })
 
       return createSuccessResponse(results)
@@ -42,6 +44,8 @@ const searchRoutes = new Elysia({ prefix: '/search' })
       query: z.object({
         limit: z.preprocess((val) => Number(val), z.number().optional()),
         offset: z.preprocess((val) => Number(val), z.number().optional()),
+        orderDirection: z.enum(['asc', 'desc']).optional(),
+        orderBy: z.enum(['createdAt', 'updatedAt', 'rating']).optional(),
       }),
     },
   )
