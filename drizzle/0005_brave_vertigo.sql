@@ -1,0 +1,1 @@
+ALTER TABLE "info" ALTER COLUMN "trailers" DROP NOT NULL;

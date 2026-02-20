@@ -2,6 +2,7 @@ import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import Elysia from 'elysia'
+import { schemaUpdateQueue } from '../queue'
 
 export const utilsRoutes = new Elysia({ prefix: '/utils' }).get(
   '/providers',
@@ -62,3 +63,23 @@ export const utilsRoutes = new Elysia({ prefix: '/utils' }).get(
     return providers
   },
 )
+  .post('/schema-update', async () => {
+    const existingJobs = await schemaUpdateQueue.getJobs(['active', 'waiting'])
+
+    if (existingJobs.length > 0) {
+      const jobId = existingJobs[0]?.id
+      return {
+        status: 'already_running',
+        message: 'Schema update job is already running or queued',
+        jobId,
+      }
+    }
+
+    const job = await schemaUpdateQueue.add('trigger', { trigger: 'start' })
+
+    return {
+      status: 'triggered',
+      message: 'Schema update job has been triggered',
+      jobId: job.id,
+    }
+  })

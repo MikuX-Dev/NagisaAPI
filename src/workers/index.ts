@@ -2,6 +2,7 @@ import { animeWorker } from './anime.worker'
 import { episodesWorker } from './episodes.worker'
 import { shutdownCrawler } from './crawler.worker'
 import { trendingWorker } from './trending.worker'
+import { schemaUpdateWorker } from './anime-schema-update.worker'
 // import { shutdownDedupWorker } from './dedup.worker'
 
 console.log('🚀 All workers started')
@@ -19,6 +20,7 @@ const handleShutdown = async (signal: string) => {
       animeWorker.close(),
       episodesWorker.close(),
       trendingWorker.close(),
+      schemaUpdateWorker.close(),
       shutdownCrawler(),
       // shutdownDedupWorker(),
     ])

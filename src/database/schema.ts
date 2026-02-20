@@ -111,7 +111,7 @@ export const info = pgTable(
         }
       }>
     >(),
-    trailers: jsonb('trailers').notNull().$type<
+    trailers: jsonb('trailers').$type<
       Array<{
         id: string
         site: string | null
