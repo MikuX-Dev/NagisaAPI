@@ -386,6 +386,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
       data.mal?.season ??
       null) as ISeason | null,
     airDate: airDate ?? null,
+    tagline: data.tmdb?.tagline ?? null,
 
     // Stats
     currentEpisode: getCurrentEpisode(),
@@ -402,6 +403,7 @@ export const getMap = async (anime: FribbAnime): Promise<Info> => {
 
     // Collections (Merged & Prioritized)
     characters: getCharacters(),
+    trailers: data.anilist?.trailers ?? data.mal?.trailers ?? [],
     relations: relations,
     artwork: Array.from(mergedArtwork.values()), // Shared/Merged set
     studio: Array.from(mergedStudios.values()), // Shared/Merged set

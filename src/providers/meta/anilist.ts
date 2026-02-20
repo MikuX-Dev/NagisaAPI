@@ -158,6 +158,16 @@ class Anilist extends MetaBase {
             }) as IRelation,
         ) ?? []
 
+        const trailers = media?.trailer
+          ? [
+              {
+                id: media.trailer.id,
+                site: media.trailer.site,
+                thumbnail: media.trailer.thumbnail,
+              },
+            ]
+          : []
+
       return {
         id: media?.id.toString(),
         titles: [
@@ -193,6 +203,7 @@ class Anilist extends MetaBase {
           id: 0,
           name: genre,
         })),
+        trailers,
         totalEpisodes:
           media?.episodes ?? media?.nextAiringEpisode?.episode ?? null,
         characters,
@@ -280,6 +291,11 @@ class Anilist extends MetaBase {
         }
       }
     }
+    trailer {
+      id
+      site
+      thumbnail
+    }
     relations {
       edges {
         relationType
@@ -336,6 +352,11 @@ export interface Media {
   status: AnilistMediaStatus | null
   tags: Tag[] | null
   title: Title
+  trailer: {
+    id: string
+    site: string | null
+    thumbnail: string | null
+  } | null
   characters: CharacterConnection | null
   relations: RelationConnection | null
   startDate: FuzzyDate | null

@@ -690,6 +690,8 @@ export const getAnimeFromAnilistIds = async (
       description: info.description,
       color: info.color,
       coverColor: info.coverColor,
+      trailers: info.trailers,
+      tagline: info.tagline,
       status: info.status,
       format: info.format,
       season: info.season,

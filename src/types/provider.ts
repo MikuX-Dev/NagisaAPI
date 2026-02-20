@@ -42,6 +42,12 @@ export interface ProviderInfo {
   studio?: IStudio[]
   genres?: IGenre[]
   tags?: ITag[]
+  tagline?: string | null
+  trailers?: Array<{
+    id: string
+    site: string | null
+    thumbnail: string | null
+  }>
   createdAt: number
   updatedAt: number
 

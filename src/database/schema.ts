@@ -65,6 +65,7 @@ export const info = pgTable(
     season: text('season').$type<
       'summer' | 'winter' | 'spring' | 'fall' | null
     >(),
+    tagline: text('tagline'),
     relations: jsonb('relations').$type<Array<{
       relationType:
         | 'PREQUEL'
@@ -108,6 +109,13 @@ export const info = pgTable(
           image: string | null
           name: string | null
         }
+      }>
+    >(),
+    trailers: jsonb('trailers').notNull().$type<
+      Array<{
+        id: string
+        site: string | null
+        thumbnail: string | null
       }>
     >(),
     artwork: jsonb('artwork').notNull().$type<

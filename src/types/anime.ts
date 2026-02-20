@@ -108,6 +108,7 @@ export interface Info {
   status: IStatus | null
   format: IFormat | null
   season: ISeason | null
+  tagline: string | null
   relations: IRelation[] | null
   currentEpisode: number | null
   countryOfOrigin: string | null
@@ -117,6 +118,11 @@ export interface Info {
   rating: number | null
   ageRating: string | null
   characters: ICharacter[]
+  trailers: Array<{
+    id: string
+    site: string | null
+    thumbnail: string | null
+  }>
   artwork: IArtwork[]
   studio: IStudio[]
   genres: IGenre[]
