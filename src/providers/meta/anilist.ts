@@ -158,15 +158,15 @@ class Anilist extends MetaBase {
             }) as IRelation,
         ) ?? []
 
-        const trailers = media?.trailer
-          ? [
-              {
-                id: media.trailer.id,
-                site: media.trailer.site,
-                thumbnail: media.trailer.thumbnail,
-              },
-            ]
-          : []
+      const trailers = media?.trailer
+        ? [
+            {
+              id: media.trailer.id,
+              site: media.trailer.site,
+              thumbnail: media.trailer.thumbnail,
+            },
+          ]
+        : []
 
       return {
         id: media?.id.toString(),

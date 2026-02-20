@@ -610,6 +610,7 @@ export async function search(options: SearchOptions = {}) {
 
   return results
 }
+
 export const getAllAnilistIds = async (): Promise<number[]> => {
   const result = await db
     .select({

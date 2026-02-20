@@ -444,7 +444,7 @@ class TheMovieDB extends MetaBase {
       }
 
       const basicData = await basicResponse.json<TMDBDetailedInfo>()
-      
+
       let keywords: TMDBKeyword[] = []
       if (keywordsResponse.ok) {
         const keywordsData = await keywordsResponse.json<TMDBKeywordsResponse>()
@@ -791,27 +791,26 @@ export interface TMDBInfoResponse {
   genres: TMDBGenre[]
 }
 
-const tmdb = new TheMovieDB();
+const tmdb = new TheMovieDB()
 console.dir(
-  await tmdb.getInfo(
-{
-  "type" : "TV",
-  "anidb_id" : 17947,
-  "anilist_id" : 163134,
-  "animecountdown_id" : 2125704,
-  "anime-planet_id" : "rezero-starting-life-in-another-world-season-3",
-  "anisearch_id" : 18302,
-  "imdb_id" : "tt5607616",
-  "kitsu_id" : 47235,
-  "livechart_id" : 11908,
-  "mal_id" : 54857,
-  "simkl_id" : 2125704,
-  "themoviedb_id" : 65942,
-  "tvdb_id" : 305089,
-  "season" : {
-    "tvdb" : 3,
-    "tmdb" : 3
-  }
-}
+  await tmdb.getInfo({
+    type: 'TV',
+    anidb_id: 17947,
+    anilist_id: 163134,
+    animecountdown_id: 2125704,
+    'anime-planet_id': 'rezero-starting-life-in-another-world-season-3',
+    anisearch_id: 18302,
+    imdb_id: 'tt5607616',
+    kitsu_id: 47235,
+    livechart_id: 11908,
+    mal_id: 54857,
+    simkl_id: 2125704,
+    themoviedb_id: 65942,
+    tvdb_id: 305089,
+    season: {
+      tvdb: 3,
+      tmdb: 3,
+    },
+  }),
+  { depth: null },
 )
-, { depth: null })
