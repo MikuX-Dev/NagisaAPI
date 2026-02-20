@@ -369,6 +369,12 @@ export interface SearchOptions {
   fuzzyThreshold?: number
 }
 
+const anyArray = (ids: string[]) =>
+  sql`ARRAY[${sql.join(
+    ids.map((id) => sql`${id}`),
+    sql`, `,
+  )}]`
+
 export async function search(options: SearchOptions = {}) {
   const {
     query,
@@ -426,10 +432,10 @@ export async function search(options: SearchOptions = {}) {
     if (tagIds.length > 0) {
       conditions.push(
         sql`EXISTS (
-          SELECT 1 FROM ${infoToTag}
-          WHERE ${infoToTag.infoId} = ${info.id}
-          AND ${infoToTag.tagId} = ANY(${tagIds})
-        )`,
+    SELECT 1 FROM ${infoToTag}
+    WHERE ${infoToTag.infoId} = ${info.id}
+    AND ${infoToTag.tagId} = ANY(${anyArray(tagIds)})
+  )`,
       )
     }
   }
@@ -508,10 +514,10 @@ export async function search(options: SearchOptions = {}) {
     if (studioIds.length > 0) {
       conditions.push(
         sql`EXISTS (
-          SELECT 1 FROM ${infoToStudio}
-          WHERE ${infoToStudio.infoId} = ${info.id}
-          AND ${infoToStudio.studioId} = ANY(${studioIds})
-        )`,
+    SELECT 1 FROM ${infoToStudio}
+    WHERE ${infoToStudio.infoId} = ${info.id}
+    AND ${infoToStudio.studioId} = ANY(${anyArray(studioIds)})
+  )`,
       )
     }
   }
@@ -525,10 +531,10 @@ export async function search(options: SearchOptions = {}) {
     if (genreIds.length > 0) {
       conditions.push(
         sql`EXISTS (
-          SELECT 1 FROM ${infoToGenre}
-          WHERE ${infoToGenre.infoId} = ${info.id}
-          AND ${infoToGenre.genreId} = ANY(${genreIds})
-        )`,
+    SELECT 1 FROM ${infoToGenre}
+    WHERE ${infoToGenre.infoId} = ${info.id}
+    AND ${infoToGenre.genreId} = ANY(${anyArray(genreIds)})
+  )`,
       )
     }
   }
@@ -542,10 +548,10 @@ export async function search(options: SearchOptions = {}) {
     if (tagIds.length > 0) {
       conditions.push(
         sql`EXISTS (
-          SELECT 1 FROM ${infoToTag}
-          WHERE ${infoToTag.infoId} = ${info.id}
-          AND ${infoToTag.tagId} = ANY(${tagIds})
-        )`,
+    SELECT 1 FROM ${infoToTag}
+    WHERE ${infoToTag.infoId} = ${info.id}
+    AND ${infoToTag.tagId} = ANY(${anyArray(tagIds)})
+  )`,
       )
     }
   }
