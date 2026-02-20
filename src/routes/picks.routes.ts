@@ -2,7 +2,15 @@ import Elysia from 'elysia'
 import z from 'zod'
 
 import { getAnimeFromAnilistIds } from '../database/functions'
-import { getBestScore, getPopular, getTrending } from '../helper/get-spot'
+import {
+  getBestScore,
+  getPopular,
+  getTrending,
+  getRecentlyAired,
+  getPopularMovies,
+  getPopularThisSeason,
+  getUpcomingAnime,
+} from '../helper/get-spot'
 // import { trendingQueue } from '../queue'
 import { createSuccessResponse } from '../helper/response'
 import { redis } from '../database/cache'
@@ -31,9 +39,8 @@ const getCacheKey = (prefix: string, params: CacheParams): string => {
 const getCachedOrFetch = async <T>(
   cacheKey: string,
   fetchFn: () => Promise<T>,
-  forceFresh: boolean = false, // Added forceFresh flag
+  forceFresh: boolean = false,
 ): Promise<T> => {
-  // If not forced, try to get from cache
   if (!forceFresh) {
     const cached = await redis.get(cacheKey)
     if (cached) {
@@ -109,6 +116,83 @@ const picksRoutes = new Elysia({ prefix: '/picks' })
       // })
 
       return createSuccessResponse(bestScoresAnimes.found)
+    },
+    { query: querySchema },
+  )
+  .get(
+    '/recently-aired',
+    async ({ query }) => {
+      const cacheKey = getCacheKey('recently-aired', query)
+
+      const anilistRecentlyAiredIds = await getCachedOrFetch(
+        cacheKey,
+        () => getRecentlyAired({ limit: query.limit, offset: query.offset }),
+        query.fresh,
+      )
+
+      const recentlyAiredAnimes = await getAnimeFromAnilistIds(
+        anilistRecentlyAiredIds,
+      )
+
+      return createSuccessResponse(recentlyAiredAnimes.found)
+    },
+    { query: querySchema },
+  )
+  .get(
+    '/popular-movies',
+    async ({ query }) => {
+      const cacheKey = getCacheKey('popular-movies', query)
+
+      const anilistPopularMoviesIds = await getCachedOrFetch(
+        cacheKey,
+        () => getPopularMovies({ limit: query.limit, offset: query.offset }),
+        query.fresh,
+      )
+
+      const popularMovies = await getAnimeFromAnilistIds(
+        anilistPopularMoviesIds,
+      )
+
+      return createSuccessResponse(popularMovies.found)
+    },
+    { query: querySchema },
+  )
+  .get(
+    '/popular-this-season',
+    async ({ query }) => {
+      const cacheKey = getCacheKey('popular-this-season', query)
+
+      const anilistPopularThisSeasonIds = await getCachedOrFetch(
+        cacheKey,
+        () =>
+          getPopularThisSeason({ limit: query.limit, offset: query.offset }),
+        query.fresh,
+      )
+
+      const popularThisSeasonAnimes = await getAnimeFromAnilistIds(
+        anilistPopularThisSeasonIds,
+      )
+
+      return createSuccessResponse(popularThisSeasonAnimes.found)
+    },
+    { query: querySchema },
+  )
+  .get(
+    '/upcoming-anime',
+    async ({ query }) => {
+      const cacheKey = getCacheKey('upcoming-anime', query)
+
+      const anilistUpcomingAnimeIds = await getCachedOrFetch(
+        cacheKey,
+        () => getUpcomingAnime({ limit: query.limit, offset: query.offset }),
+        query.fresh,
+      )
+
+      const upcomingAnimes = await getAnimeFromAnilistIds(
+        anilistUpcomingAnimeIds,
+      )
+
+      return createSuccessResponse(upcomingAnimes.found)
     },
     { query: querySchema },
   )
