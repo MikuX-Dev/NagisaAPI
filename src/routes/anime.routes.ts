@@ -7,7 +7,10 @@ import {
   getAllAnimeIdAndTitle,
   getAnimeCount,
   getEpisodes,
+  getGenres,
   getInfo,
+  getStudios,
+  getTags,
   nukeAllAnimeEpisodes,
 } from '../database/functions'
 
@@ -349,5 +352,17 @@ const animeRoutes = new Elysia({ prefix: '/anime' })
       }),
     },
   )
+  .get('/genres', async () => {
+    const genres = await getGenres()
+    return createSuccessResponse(genres)
+  })
+  .get('/tags', async () => {
+    const tags = await getTags()
+    return createSuccessResponse(tags)
+  })
+  .get('/studios', async () => {
+    const studios = await getStudios()
+    return createSuccessResponse(studios)
+  })
 
 export { animeRoutes }
