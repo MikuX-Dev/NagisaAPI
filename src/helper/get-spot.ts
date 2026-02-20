@@ -20,6 +20,16 @@ query($page: Int, $perPage: Int, $season: MediaSeason, $seasonYear: Int, $sort: 
 }
 `
 
+export const RECENTLY_AIRED_QUERY = `
+query($page: Int, $perPage: Int, $sort: [MediaSort], $statusIn: [MediaStatus], $isAdult: Boolean = false) {
+  Page(page: $page, perPage: $perPage) {
+    media(status_in: $statusIn, sort: $sort, isAdult: $isAdult, type: ANIME) {
+      id
+    }
+  }
+}
+`
+
 interface PaginationParams {
   limit?: number
   offset?: number
@@ -134,11 +144,11 @@ export const getRecentlyAired = async ({
     const res = await ky
       .post('https://graphql.anilist.co', {
         json: {
-          query: SPOT_QUERY,
+          query: RECENTLY_AIRED_QUERY,
           variables: {
             page,
             perPage,
-            type: 'ANIME',
+            statusIn: ['RELEASING', 'FINISHED'],
             sort: ['END_DATE_DESC', 'POPULARITY_DESC'],
           },
         },
