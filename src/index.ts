@@ -4,12 +4,12 @@ import Elysia from 'elysia'
 
 import { redis } from './database/cache'
 import { apiRoutes } from './routes/api.routes'
-import { crawlQueue, dedupQueue, scheduleDailyUpdate } from './queue'
+import { crawlQueue, scheduleDailyUpdate } from './queue'
 // import { createSuccessResponse } from './helper/response'
 import { getAnimeCount } from './database/functions'
 await import('./workers/index')
-import path from 'node:path'
-import { exists } from 'node:fs/promises'
+// import path from 'node:path'
+// import { exists } from 'node:fs/promises'
 
 const pastelPink = chalk.hex('#ffb7c5')
 const pastelBlue = chalk.hex('#b5e8ff')
@@ -22,17 +22,17 @@ const HOST = 'localhost'
 new Elysia()
   .use(cors())
   .onStart(async () => {
-    await dedupQueue.add('dedup-full', {})
+    // await dedupQueue.add('dedup-full', {})
     await scheduleDailyUpdate()
 
-    const progressFile = path.join(process.cwd(), 'crawl-progress.json')
-    const hasCrawlProgress = await exists(progressFile)
+    // const progressFile = path.join(process.cwd(), 'crawl-progress.json')
+    // const hasCrawlProgress = await exists(progressFile)
 
-    if (hasCrawlProgress) {
-      console.log('🕷️ Found crawl-progress.json. Resuming crawler...')
-      await crawlQueue.add('resume-crawl', {})
-      return
-    }
+    // if (hasCrawlProgress) {
+    //   console.log('🕷️ Found crawl-progress.json. Resuming crawler...')
+    //   await crawlQueue.add('resume-crawl', {})
+    //   return
+    // }
 
     const existingCount = await getAnimeCount()
     if (existingCount === 0) {
