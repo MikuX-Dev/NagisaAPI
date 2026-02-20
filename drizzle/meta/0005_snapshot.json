@@ -142,12 +142,8 @@
           "name": "episode_info_id_info_id_fk",
           "tableFrom": "episode",
           "tableTo": "info",
-          "columnsFrom": [
-            "info_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["info_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -157,10 +153,7 @@
         "episode_info_id_number_unique": {
           "name": "episode_info_id_number_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "info_id",
-            "number"
-          ]
+          "columns": ["info_id", "number"]
         }
       },
       "policies": {},
@@ -207,9 +200,7 @@
         "genre_name_unique": {
           "name": "genre_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -494,12 +485,8 @@
           "name": "info_to_genre_info_id_info_id_fk",
           "tableFrom": "info_to_genre",
           "tableTo": "info",
-          "columnsFrom": [
-            "info_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["info_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -507,12 +494,8 @@
           "name": "info_to_genre_genre_id_genre_id_fk",
           "tableFrom": "info_to_genre",
           "tableTo": "genre",
-          "columnsFrom": [
-            "genre_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["genre_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -520,10 +503,7 @@
       "compositePrimaryKeys": {
         "info_to_genre_info_id_genre_id_pk": {
           "name": "info_to_genre_info_id_genre_id_pk",
-          "columns": [
-            "info_id",
-            "genre_id"
-          ]
+          "columns": ["info_id", "genre_id"]
         }
       },
       "uniqueConstraints": {},
@@ -585,12 +565,8 @@
           "name": "info_to_studio_info_id_info_id_fk",
           "tableFrom": "info_to_studio",
           "tableTo": "info",
-          "columnsFrom": [
-            "info_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["info_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -598,12 +574,8 @@
           "name": "info_to_studio_studio_id_studio_id_fk",
           "tableFrom": "info_to_studio",
           "tableTo": "studio",
-          "columnsFrom": [
-            "studio_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["studio_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -611,10 +583,7 @@
       "compositePrimaryKeys": {
         "info_to_studio_info_id_studio_id_pk": {
           "name": "info_to_studio_info_id_studio_id_pk",
-          "columns": [
-            "info_id",
-            "studio_id"
-          ]
+          "columns": ["info_id", "studio_id"]
         }
       },
       "uniqueConstraints": {},
@@ -676,12 +645,8 @@
           "name": "info_to_tag_info_id_info_id_fk",
           "tableFrom": "info_to_tag",
           "tableTo": "info",
-          "columnsFrom": [
-            "info_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["info_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -689,12 +654,8 @@
           "name": "info_to_tag_tag_id_tag_id_fk",
           "tableFrom": "info_to_tag",
           "tableTo": "tag",
-          "columnsFrom": [
-            "tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -702,10 +663,7 @@
       "compositePrimaryKeys": {
         "info_to_tag_info_id_tag_id_pk": {
           "name": "info_to_tag_info_id_tag_id_pk",
-          "columns": [
-            "info_id",
-            "tag_id"
-          ]
+          "columns": ["info_id", "tag_id"]
         }
       },
       "uniqueConstraints": {},
@@ -753,9 +711,7 @@
         "studio_name_unique": {
           "name": "studio_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -802,9 +758,7 @@
         "tag_name_unique": {
           "name": "tag_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},

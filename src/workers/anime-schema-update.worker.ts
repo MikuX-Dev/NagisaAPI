@@ -91,9 +91,7 @@ const schemaUpdateWorker = new Worker<SchemaUpdatePayload>(
         }
 
         try {
-          job.log(
-            `Processing ${infoId} (${processedCount + 1}/${totalAnime})`,
-          )
+          job.log(`Processing ${infoId} (${processedCount + 1}/${totalAnime})`)
           console.log(
             `   [${processedCount + 1}/${totalAnime}] Processing ${infoId}`,
           )

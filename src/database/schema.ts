@@ -111,13 +111,14 @@ export const info = pgTable(
         }
       }>
     >(),
-    trailers: jsonb('trailers').$type<
-      Array<{
-        id: string
-        site: string | null
-        thumbnail: string | null
-      }>
-    >(),
+    trailers:
+      jsonb('trailers').$type<
+        Array<{
+          id: string
+          site: string | null
+          thumbnail: string | null
+        }>
+      >(),
     artwork: jsonb('artwork').notNull().$type<
       Array<{
         type:

@@ -4,9 +4,8 @@ import { join } from 'node:path'
 import Elysia from 'elysia'
 import { schemaUpdateQueue } from '../queue'
 
-export const utilsRoutes = new Elysia({ prefix: '/utils' }).get(
-  '/providers',
-  async () => {
+export const utilsRoutes = new Elysia({ prefix: '/utils' })
+  .get('/providers', async () => {
     const providersDir = join(import.meta.dir, '..', 'providers')
     const categories = await readdir(providersDir, { withFileTypes: true })
 
@@ -61,8 +60,7 @@ export const utilsRoutes = new Elysia({ prefix: '/utils' }).get(
     }
 
     return providers
-  },
-)
+  })
   .post('/schema-update', async () => {
     const existingJobs = await schemaUpdateQueue.getJobs(['active', 'waiting'])
 
