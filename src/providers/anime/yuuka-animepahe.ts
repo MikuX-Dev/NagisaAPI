@@ -80,7 +80,7 @@ class Yuuka extends AnimeBase {
         ],
         id,
         episodeId: r.id?.toString(),
-        number: r.number ?? idx + 1,
+        number: idx + 1,
 
         createdAt: Date.now(),
         updatedAt: Date.now(),
